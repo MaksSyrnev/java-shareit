@@ -9,10 +9,10 @@ import ru.practicum.shareit.user.model.User;
  */
 @Data
 public class ItemDto {
-    int id;
-    User user;
-    String name;
-    String description;
-    boolean availability;
-    ItemRequest request;
+    private int id;
+    private User user;
+    private String name;
+    private String description;
+    private boolean available;
+    private ItemRequest request;
 }

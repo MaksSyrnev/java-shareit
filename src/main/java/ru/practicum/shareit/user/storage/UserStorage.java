@@ -3,11 +3,12 @@ package ru.practicum.shareit.user.storage;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserStorage {
     User addUser(User user);
 
-    User getUser(int id);
+    Optional<User> getUser(int id);
 
     List<User> getAll();
 
@@ -15,5 +16,5 @@ public interface UserStorage {
 
     int deleteAll();
 
-    User updateUser(User user);
+    Optional<User> updateUser(int id, User user);
 }
