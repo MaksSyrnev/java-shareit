@@ -10,4 +10,11 @@ public class UserMapper {
         userDto.setEmail(user.getEmail());
         return userDto;
     }
+
+    public User toUser(UserDto userDto) {
+        User user = new User();
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        return user;
+    }
 }
