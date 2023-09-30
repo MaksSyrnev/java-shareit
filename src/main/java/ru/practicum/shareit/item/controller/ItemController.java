@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -26,13 +27,13 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item addItem(HttpServletRequest request, ItemDto itemDto) {
+    public Item addItem(HttpServletRequest request, @Valid @RequestBody ItemDto itemDto) {
         int userId = Integer.parseInt(request.getHeader("X-Sharer-User-Id"));
         return service.addItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(HttpServletRequest request, @PathVariable int itemId, ItemDto itemDto) {
+    public Item updateItem(HttpServletRequest request, @PathVariable int itemId, @Valid @RequestBody ItemDto itemDto) {
         int userId = Integer.parseInt(request.getHeader("X-Sharer-User-Id"));
         return service.updateItem(itemId, itemDto, userId);
     }

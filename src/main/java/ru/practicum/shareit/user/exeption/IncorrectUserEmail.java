@@ -1,4 +1,4 @@
-package ru.practicum.shareit.exeption;
+package ru.practicum.shareit.user.exeption;
 
 public class IncorrectUserEmail extends RuntimeException {
 
