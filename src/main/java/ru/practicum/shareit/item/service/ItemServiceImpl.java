@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class ItemServiceImpl implements ItemService{
+public class ItemServiceImpl implements ItemService {
     private ItemStorage storage;
     private UserService userService;
 
