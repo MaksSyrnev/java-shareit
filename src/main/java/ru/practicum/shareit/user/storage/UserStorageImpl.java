@@ -6,11 +6,11 @@ import ru.practicum.shareit.user.model.User;
 import java.util.*;
 
 @Repository
-public class UserStorageImp implements UserStorage{
+public class UserStorageImpl implements UserStorage {
     private int id;
     private final Map<Integer,User> users;
 
-    public UserStorageImp() {
+    public UserStorageImpl() {
         this.id = 0;
         this.users = new HashMap<>();
     }

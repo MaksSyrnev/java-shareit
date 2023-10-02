@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(int id) {
         Optional<User> usrStorage = storage.getUser(id);
-        if(usrStorage.isEmpty()) {
+        if (usrStorage.isEmpty()) {
             log.error("getUserById -  {}, неверный id", id);
             throw new IncorrectUserIdException("Пользователь с таким id не найден");
         }
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User addUser(User user) {
         String email = user.getEmail();
-        if(isNotUniqEmail(email)) {
+        if (isNotUniqEmail(email)) {
             log.error("addUser, почта уже есть в сервисе -  {} ", user.getEmail());
             throw new IncorrectUserEmail("почта уже зарегистрирована в сервисе");
         }
@@ -52,16 +52,16 @@ public class UserServiceImpl implements UserService {
         Optional<String> name = Optional.ofNullable(userDto.getName());
         Optional<String> email = Optional.ofNullable(userDto.getEmail());
         Optional<User> usrStorage = storage.getUser(id);
-        if(usrStorage.isEmpty()) {
+        if (usrStorage.isEmpty()) {
             log.error("updateUser -  {}, неверный id", id);
             throw new IncorrectUserIdException("нет пользователя с таким id");
         }
-        if(name.isPresent()) {
+        if (name.isPresent()) {
             usrStorage.get().setName(name.get());
         }
-        if(email.isPresent()) {
+        if (email.isPresent()) {
             boolean isEmailSome = usrStorage.get().getEmail().equals(email.get());
-            if(isNotUniqEmail(email.get()) && !isEmailSome) {
+            if (isNotUniqEmail(email.get()) && !isEmailSome) {
                 log.error("updateUser, почта уже есть в сервисе -  {} ", email.get());
                 throw new IncorrectUserEmail("почта уже зарегистрирована в сервисе");
             }
@@ -82,8 +82,8 @@ public class UserServiceImpl implements UserService {
 
     private boolean isNotUniqEmail(String email) {
         List<User> users = getAllUsers();
-        for(User user: users) {
-            if(email.equals(user.getEmail())) {
+        for (User user: users) {
+            if (email.equals(user.getEmail())) {
                 return true;
             }
         }
