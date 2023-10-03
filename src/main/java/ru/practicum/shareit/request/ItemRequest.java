@@ -10,8 +10,8 @@ import java.sql.Timestamp;
  */
 @Data
 public class ItemRequest {
-    int id;
-    String description;
-    User requestor;
-    Timestamp created;
+    private int id;
+    private String description;
+    private User requestor;
+    private Timestamp created;
 }

@@ -27,20 +27,21 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item addItem(HttpServletRequest request, @Valid @RequestBody ItemDto itemDto) {
-        int userId = Integer.parseInt(request.getHeader("X-Sharer-User-Id"));
+    public Item addItem(@RequestHeader("X-Sharer-User-Id") String headerUserId, @Valid @RequestBody ItemDto itemDto) {
+        int userId = Integer.parseInt(headerUserId);
         return service.addItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(HttpServletRequest request, @PathVariable int itemId, @Valid @RequestBody ItemDto itemDto) {
-        int userId = Integer.parseInt(request.getHeader("X-Sharer-User-Id"));
+    public Item updateItem(@RequestHeader("X-Sharer-User-Id") String headerUserId, @PathVariable int itemId,
+                           @Valid @RequestBody ItemDto itemDto) {
+        int userId = Integer.parseInt(headerUserId);
         return service.updateItem(itemId, itemDto, userId);
     }
 
     @GetMapping
-    public List<Item> getItems(HttpServletRequest request) {
-        int userId = Integer.parseInt(request.getHeader("X-Sharer-User-Id"));
+    public List<Item> getItems(@RequestHeader("X-Sharer-User-Id") String headerUserId) {
+        int userId = Integer.parseInt(headerUserId);
         return service.getAllItemsByUser(userId);
     }
 

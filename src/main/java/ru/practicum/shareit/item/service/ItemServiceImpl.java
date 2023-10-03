@@ -35,18 +35,14 @@ public class ItemServiceImpl implements ItemService {
         log.info("добавление item, пришло : userId - {}, itemDto- {}", userId, itemDto);
         try {
             User user = userService.getUserById(userId);
-            Item item = new Item();
-            Optional<String> name = Optional.ofNullable(itemDto.getName());
-            Optional<String> description = Optional.ofNullable(itemDto.getDescription());
-            Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
-            if (name.isEmpty() || name.get().isBlank() || description.isEmpty() || description.get().isBlank()
-                    || available.isEmpty() || available.get().isBlank()) {
+            if (!isValidNewItemData(itemDto)) {
                 throw new IncorrectItemDataExeption("недостаточно данных");
             }
+            Item item = new Item();
             item.setUser(user);
             item.setName(itemDto.getName());
             item.setDescription(itemDto.getDescription());
-            item.setAvailable(Boolean.parseBoolean(available.get()));
+            item.setAvailable(Boolean.parseBoolean(itemDto.getAvailable()));
             log.info("добавление item, отправка в сторадж : item - {}", item);
             return storage.addItem(item);
         } catch (IncorrectUserIdException e) {
@@ -64,43 +60,28 @@ public class ItemServiceImpl implements ItemService {
         if (item.get().getUser().getId() != userId) {
             throw new IncorrectItemOwnerExeption("в доступе отказано, чужая вещь");
         }
-        Optional<String> name = Optional.ofNullable(itemDto.getName());
-        if (name.isPresent()) {
-           item.get().setName(name.get());
-        }
-        Optional<String> description = Optional.ofNullable(itemDto.getDescription());
-        if (description.isPresent()) {
-            item.get().setDescription(description.get());
-        }
-        Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
-        if (available.isPresent()) {
-            item.get().setAvailable(Boolean.parseBoolean(available.get()));
-        }
-        Optional<ItemRequest> request = Optional.ofNullable(itemDto.getRequest());
-        if (request.isPresent()) {
-            item.get().setRequest(request.get());
-        }
+        fillItem(item.get(), itemDto);
         log.info("item на выходе получился такой: {}", item.get());
         return item.get();
     }
 
     @Override
     public Item getItemById(int itemId) {
-        Optional<Item> item = storage.getItemById(itemId);
-        if (item.isEmpty()) {
+        Optional<Item> wrapperItem = storage.getItemById(itemId);
+        if (wrapperItem.isEmpty()) {
             throw new IncorrectItemDataExeption("неверный id вещи");
         }
-        return item.get();
+        return wrapperItem.get();
     }
 
     @Override
     public List<Item> getAllItemsByUser(int id) {
         User user = userService.getUserById(id);
-        List<Item> itemsAll = storage.getAllItems();
-        ArrayList<Item> itemsUser = new ArrayList<>();
-        for (Item i: itemsAll) {
-            if (i.getUser().getId() == id) {
-                itemsUser.add(i);
+        final List<Item> itemsAll = storage.getAllItems();
+        final ArrayList<Item> itemsUser = new ArrayList<>();
+        for (Item item: itemsAll) {
+            if (item.getUser().getId() == id) {
+                itemsUser.add(item);
             }
         }
         return itemsUser;
@@ -108,18 +89,48 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<Item> searchItem(String text) {
-        ArrayList<Item> itemsForSearch = new ArrayList<>();
+        ArrayList<Item> itemsResultSearch = new ArrayList<>();
         if (text.isBlank()) {
-            return itemsForSearch;
+            return itemsResultSearch;
         }
-        String textForSearch = text.toLowerCase();
+        String textSearch = text.toLowerCase();
         List<Item> itemsAll = storage.getAllItems();
-        for (Item i: itemsAll) {
-            if (((i.getName().toLowerCase().contains(textForSearch)) ||
-                    (i.getDescription().toLowerCase().contains(textForSearch))) && i.isAvailable()) {
-                itemsForSearch.add(i);
+        for (Item item: itemsAll) {
+            if (((item.getName().toLowerCase().contains(textSearch)) ||
+                    (item.getDescription().toLowerCase().contains(textSearch))) && item.isAvailable()) {
+                itemsResultSearch.add(item);
             }
         }
-        return itemsForSearch;
+        return itemsResultSearch;
+    }
+
+    private Boolean isValidNewItemData(ItemDto itemDto) {
+        Optional<String> name = Optional.ofNullable(itemDto.getName());
+        Optional<String> description = Optional.ofNullable(itemDto.getDescription());
+        Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
+        if (name.isEmpty() || name.get().isBlank() || description.isEmpty() || description.get().isBlank()
+                || available.isEmpty() || available.get().isBlank()) {
+            return false;
+        }
+        return true;
+    }
+
+    private void fillItem(Item item, ItemDto itemDto) {
+        Optional<String> name = Optional.ofNullable(itemDto.getName());
+        if (name.isPresent()) {
+            item.setName(name.get());
+        }
+        Optional<String> description = Optional.ofNullable(itemDto.getDescription());
+        if (description.isPresent()) {
+            item.setDescription(description.get());
+        }
+        Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
+        if (available.isPresent()) {
+            item.setAvailable(Boolean.parseBoolean(available.get()));
+        }
+        Optional<ItemRequest> request = Optional.ofNullable(itemDto.getRequest());
+        if (request.isPresent()) {
+            item.setRequest(request.get());
+        }
     }
 }

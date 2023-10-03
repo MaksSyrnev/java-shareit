@@ -11,10 +11,10 @@ import java.sql.Timestamp;
  */
 @Data
 public class Booking {
-    int id;
-    Timestamp start;
-    Timestamp end;
-    Item item;
-    User booker;
-    String status;
+    private int id;
+    private Timestamp start;
+    private Timestamp end;
+    private Item item;
+    private User booker;
+    private String status;
 }
