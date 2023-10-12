@@ -5,7 +5,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
 
-@Repository
+//@Repository
 public class UserStorageImpl implements UserStorage {
     private int id;
     private final Map<Integer,User> users;

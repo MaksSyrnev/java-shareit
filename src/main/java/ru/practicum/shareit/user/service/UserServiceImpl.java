@@ -7,6 +7,7 @@ import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.exeption.IncorrectUserEmail;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
@@ -15,16 +16,16 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    private final UserStorage storage;
+    private final UserRepository repository;
 
     @Autowired
-    public UserServiceImpl(UserStorage storage) {
-        this.storage = storage;
+    public UserServiceImpl(UserRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public User getUserById(int id) {
-        Optional<User> usrStorage = storage.getUser(id);
+        Optional<User> usrStorage = Optional.ofNullable(repository.getById(id));
         if (usrStorage.isEmpty()) {
             log.error("getUserById -  {}, неверный id", id);
             throw new IncorrectUserIdException("Пользователь с таким id не найден");

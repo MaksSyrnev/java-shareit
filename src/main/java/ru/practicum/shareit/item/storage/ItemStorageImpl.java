@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+//@Repository
 public class ItemStorageImpl implements ItemStorage {
     private int id;
     private HashMap<Integer, Item> items;
