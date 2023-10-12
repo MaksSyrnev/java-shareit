@@ -8,7 +8,6 @@ import ru.practicum.shareit.user.exeption.IncorrectUserEmail;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
-import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUsers() {
-        return storage.getAll();
+        return repository.findAll();
     }
 
     @Override
@@ -45,14 +44,14 @@ public class UserServiceImpl implements UserService {
             log.error("addUser, почта уже есть в сервисе -  {} ", user.getEmail());
             throw new IncorrectUserEmail("почта уже зарегистрирована в сервисе");
         }
-        return storage.addUser(user);
+        return repository.save(user);
     }
 
     @Override
     public User updateUser(int id, UserDto userDto) {
         Optional<String> name = Optional.ofNullable(userDto.getName());
         Optional<String> email = Optional.ofNullable(userDto.getEmail());
-        Optional<User> usrStorage = storage.getUser(id);
+        Optional<User> usrStorage = Optional.ofNullable(repository.getById(id));
         if (usrStorage.isEmpty()) {
             log.error("updateUser -  {}, неверный id", id);
             throw new IncorrectUserIdException("нет пользователя с таким id");
@@ -72,13 +71,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int deleteUserById(int id) {
-        return storage.deleteUser(id);
+    public void deleteUserById(int id) {
+        User user = repository.getById(id);
+        repository.delete(user);
     }
 
     @Override
-    public int deleteAllUsers() {
-        return storage.deleteAll();
+    public void deleteAllUsers() {
+        repository.deleteAll();
     }
 
     private boolean isNotUniqEmail(String email) {

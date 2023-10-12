@@ -8,7 +8,7 @@ import ru.practicum.shareit.item.exeption.IncorrectItemDataExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.model.User;
@@ -21,12 +21,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ItemServiceImpl implements ItemService {
-    private ItemStorage storage;
+    private ItemRepository repository;
     private UserService userService;
 
     @Autowired
-    public ItemServiceImpl(ItemStorage storage, UserService userService) {
-        this.storage = storage;
+    public ItemServiceImpl(ItemRepository repository, UserService userService) {
+        this.repository = repository;
         this.userService = userService;
     }
 
@@ -44,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
             item.setDescription(itemDto.getDescription());
             item.setAvailable(Boolean.parseBoolean(itemDto.getAvailable()));
             log.info("добавление item, отправка в сторадж : item - {}", item);
-            return storage.addItem(item);
+            return repository.save(item);
         } catch (IncorrectUserIdException e) {
             throw new IncorrectItemIdExeption(e.getMessage());
         }
@@ -53,7 +53,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item updateItem(int itemId, ItemDto itemDto, int userId) {
         log.info("пачим item, пришло : userId - {}, itemId - {}, itemDto- {}", userId, itemId, itemDto);
-        Optional<Item> item = storage.getItemById(itemId);
+        Optional<Item> item = Optional.ofNullable(repository.getById(itemId));
         if (item.isEmpty()) {
             throw new IncorrectItemDataExeption("Вещь с id не найдена");
         }
@@ -67,7 +67,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item getItemById(int itemId) {
-        Optional<Item> wrapperItem = storage.getItemById(itemId);
+        Optional<Item> wrapperItem = Optional.ofNullable(repository.getById(itemId));
         if (wrapperItem.isEmpty()) {
             throw new IncorrectItemDataExeption("неверный id вещи");
         }
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getAllItemsByUser(int id) {
         User user = userService.getUserById(id);
-        final List<Item> itemsAll = storage.getAllItems();
+        final List<Item> itemsAll = repository.findAll();
         final ArrayList<Item> itemsUser = new ArrayList<>();
         for (Item item: itemsAll) {
             if (item.getUser().getId() == id) {
@@ -94,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
             return itemsResultSearch;
         }
         String textSearch = text.toLowerCase();
-        List<Item> itemsAll = storage.getAllItems();
+        List<Item> itemsAll = repository.findAll();
         for (Item item: itemsAll) {
             if (((item.getName().toLowerCase().contains(textSearch)) ||
                     (item.getDescription().toLowerCase().contains(textSearch))) && item.isAvailable()) {

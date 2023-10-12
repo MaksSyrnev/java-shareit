@@ -14,7 +14,7 @@ public interface UserService {
 
     User updateUser(int id, UserDto userDto);
 
-    int deleteUserById(int id);
+    void deleteUserById(int id);
 
-    int deleteAllUsers();
+    void deleteAllUsers();
 }
