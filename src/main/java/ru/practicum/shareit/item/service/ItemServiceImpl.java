@@ -9,7 +9,7 @@ import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
@@ -53,7 +53,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item updateItem(int itemId, ItemDto itemDto, int userId) {
         log.info("пачим item, пришло : userId - {}, itemId - {}, itemDto- {}", userId, itemId, itemDto);
-        Optional<Item> item = Optional.ofNullable(repository.getById(itemId));
+        Optional<Item> item = repository.findById(itemId);
         if (item.isEmpty()) {
             throw new IncorrectItemDataExeption("Вещь с id не найдена");
         }
@@ -61,13 +61,14 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectItemOwnerExeption("в доступе отказано, чужая вещь");
         }
         fillItem(item.get(), itemDto);
+        repository.save(item.get());
         log.info("item на выходе получился такой: {}", item.get());
         return item.get();
     }
 
     @Override
     public Item getItemById(int itemId) {
-        Optional<Item> wrapperItem = Optional.ofNullable(repository.getById(itemId));
+        Optional<Item> wrapperItem = repository.findById(itemId);
         if (wrapperItem.isEmpty()) {
             throw new IncorrectItemDataExeption("неверный id вещи");
         }

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.request.model;
 
 import lombok.Data;
 import ru.practicum.shareit.user.model.User;
@@ -18,6 +18,8 @@ public class ItemRequest {
     private int id;
     @Column(name = "description", length = 1024)
     private String description;
+    @ManyToOne
+    @JoinColumn(name = "requestor_id")
     private User requestor;
     @Column(name = "created")
     private Instant created = Instant.now();

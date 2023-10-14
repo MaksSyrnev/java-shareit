@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.Data;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -20,6 +20,7 @@ public class Item {
     private int id;
     @NotNull
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     @NotBlank
     @Column(name = "name", nullable = false)
@@ -30,6 +31,7 @@ public class Item {
     @NotNull
     @Column(name = "available", nullable = false)
     private boolean available;
-    @Column(name = "request_id", nullable = true)
+    @ManyToOne
+    @JoinColumn(name = "request_id", nullable = true)
     private ItemRequest request;
 }

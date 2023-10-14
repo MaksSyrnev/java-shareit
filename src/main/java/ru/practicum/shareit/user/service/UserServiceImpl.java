@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(int id) {
-        Optional<User> usrStorage = Optional.ofNullable(repository.getById(id));
+        Optional<User> usrStorage = repository.findById(id);
         if (usrStorage.isEmpty()) {
             log.error("getUserById -  {}, неверный id", id);
             throw new IncorrectUserIdException("Пользователь с таким id не найден");
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     public User updateUser(int id, UserDto userDto) {
         Optional<String> name = Optional.ofNullable(userDto.getName());
         Optional<String> email = Optional.ofNullable(userDto.getEmail());
-        Optional<User> usrStorage = Optional.ofNullable(repository.getById(id));
+        Optional<User> usrStorage = repository.findById(id);
         if (usrStorage.isEmpty()) {
             log.error("updateUser -  {}, неверный id", id);
             throw new IncorrectUserIdException("нет пользователя с таким id");
@@ -67,13 +67,16 @@ public class UserServiceImpl implements UserService {
             }
             usrStorage.get().setEmail(email.get());
         }
+        repository.save(usrStorage.get());
         return usrStorage.get();
     }
 
     @Override
     public void deleteUserById(int id) {
-        User user = repository.getById(id);
-        repository.delete(user);
+        Optional<User> user = repository.findById(id);
+        if(user.isPresent()) {
+            repository.delete(user.get());
+        }
     }
 
     @Override

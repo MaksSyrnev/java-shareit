@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.model;
 
 import lombok.Data;
 import ru.practicum.shareit.item.model.Item;
@@ -21,9 +21,11 @@ public class Booking {
     private Instant start;
     @Column(name = "end_date", nullable = false)
     private Instant end;
-    @Column(name = "item_id")
+    @ManyToOne
+    @JoinColumn(name = "item_id")
     private Item item;
-    @Column(name = "booker_id")
+    @ManyToOne
+    @JoinColumn(name = "booker_id")
     private User booker;
     @Column(name = "status", length = 24, nullable = false)
     private String status;
