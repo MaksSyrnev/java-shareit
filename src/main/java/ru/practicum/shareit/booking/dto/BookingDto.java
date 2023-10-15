@@ -5,6 +5,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-bookings.
@@ -12,9 +13,9 @@ import java.time.Instant;
 @Data
 public class BookingDto {
     private int id;
-    private Instant start;
-    private Instant end;
-    private Item item;
-    private User booker;
+    private LocalDateTime start;
+    private LocalDateTime end;
+    private int itemId;
+    private int bookerId;
     private String status;
 }

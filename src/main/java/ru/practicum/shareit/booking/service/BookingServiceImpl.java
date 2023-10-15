@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
@@ -27,9 +29,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto addBooking(int userId, BookingDto bookingDto) {
-
-
+    public Booking addBooking(int userId, BookingDto bookingDto) {
+        Optional<User> user = userRepository.findById(userId);
+        Optional<Item> item = itemRepository.findById(bookingDto.getItemId());
+        log.info("букинг пишел такой {}", bookingDto);
         return null;
     }
 

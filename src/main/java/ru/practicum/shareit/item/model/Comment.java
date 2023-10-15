@@ -11,13 +11,11 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String comment;
+    private String text;
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
     @ManyToOne
     @JoinColumn(name = "author_id")
     private User author;
-    @Column(name = "comment_date")
-    private Instant comment_date = Instant.now();
 }

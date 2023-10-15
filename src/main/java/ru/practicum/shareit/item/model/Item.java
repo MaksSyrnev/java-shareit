@@ -20,7 +20,7 @@ public class Item {
     private int id;
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "owner_id")
     private User user;
     @NotBlank
     @Column(name = "name", nullable = false)
@@ -29,7 +29,7 @@ public class Item {
     @Column(name = "description", nullable = false)
     private String description;
     @NotNull
-    @Column(name = "available", nullable = false)
+    @Column(name = "is_available", nullable = false)
     private boolean available;
     @ManyToOne
     @JoinColumn(name = "request_id", nullable = true)
