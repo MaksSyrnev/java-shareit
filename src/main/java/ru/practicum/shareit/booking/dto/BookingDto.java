@@ -17,5 +17,5 @@ public class BookingDto {
     private LocalDateTime end;
     private int itemId;
     private int bookerId;
-    private String status;
+    private BookingDtoState status;
 }

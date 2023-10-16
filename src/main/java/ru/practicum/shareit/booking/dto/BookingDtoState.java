@@ -1,10 +1,11 @@
 package ru.practicum.shareit.booking.dto;
 
-public enum BookingState {
+public enum BookingDtoState {
     ALL,
     CURRENT,
     PAST,
     FUTURE,
     WAITING,
-    REJECTED
+    REJECTED,
+    APPROVED
 }

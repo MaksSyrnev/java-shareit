@@ -26,8 +26,7 @@ public class BookingController {
                               @RequestBody BookingDto bookingDto) {
         log.info("вызов эндпоинта POST /bookings, входящий json {} ", bookingDto);
         int userId = Integer.parseInt(headerUserId);
-        bookingService.addBooking(userId, bookingDto);
-        return null;
+        return bookingService.addBooking(userId, bookingDto);
     }
 
     @PatchMapping("/{bookingId}")

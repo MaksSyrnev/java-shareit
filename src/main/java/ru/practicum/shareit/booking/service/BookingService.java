@@ -6,7 +6,7 @@ import ru.practicum.shareit.booking.model.Booking;
 
 public interface BookingService {
     Booking addBooking(int userId, BookingDto bookingDto);
-    BookingDto approveBooking(int userId, int bookingId, Boolean approved);
+    Booking approveBooking(int userId, int bookingId, Boolean approved);
     BookingDto getBookingById(int userId, int bookingId);
     BookingDto getBookingByState(int userId, String state);
     BookingDto getBookingByOwner(int userId, String state);
