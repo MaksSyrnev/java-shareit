@@ -102,7 +102,7 @@ public class BookingServiceImpl implements BookingService {
         }
         switch (state) {
             case "CURRENT":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED).stream()
+                return repository.findAllByBookerIdOrderByStartDesc(userId).stream()
                         .filter(b->b.getStart().isBefore(LocalDateTime.now()))
                         .filter(b->b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
@@ -134,7 +134,7 @@ public class BookingServiceImpl implements BookingService {
         }
         switch (state) {
             case "CURRENT":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED)
+                return repository.findAllByItemUserIdOrderByStartDesc(userId)
                         .stream()
                         .filter(b->b.getStart().isBefore(LocalDateTime.now()))
                         .filter(b->b.getEnd().isAfter(LocalDateTime.now()))

@@ -6,12 +6,17 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDtoState;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
+import ru.practicum.shareit.item.dto.ShortCommentDto;
+import ru.practicum.shareit.item.exeption.IncorrectDataCommentExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemDataExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.storage.CommentReopository;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
@@ -25,6 +30,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.booking.dto.BookingMapper.toShortBookingDto;
+import static ru.practicum.shareit.item.dto.CommentMapper.toComment;
+import static ru.practicum.shareit.item.dto.CommentMapper.toShortCommentDto;
 import static ru.practicum.shareit.item.dto.ItemMapper.toItemDtoWithBooking;
 
 @Slf4j
@@ -33,12 +40,15 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository repository;
     private final UserService userService;
     private final BookingRepository bookingRepository;
+    private final CommentReopository commentsReopository;
 
     @Autowired
-    public ItemServiceImpl(ItemRepository repository, UserService userService, BookingRepository bookingRepository) {
+    public ItemServiceImpl(ItemRepository repository, UserService userService,
+                           BookingRepository bookingRepository, CommentReopository commentsReopository) {
         this.repository = repository;
         this.userService = userService;
         this.bookingRepository = bookingRepository;
+        this.commentsReopository = commentsReopository;
     }
 
     @Override
@@ -85,7 +95,14 @@ public class ItemServiceImpl implements ItemService {
         }
         ItemDtoWithBooking itemDto = toItemDtoWithBooking(wrapperItem.get());
         if (wrapperItem.get().getUser().getId() == userId) {
-            return fillItemBooking(itemDto);
+            fillItemBooking(itemDto);
+        }
+        List<Comment> comments = commentsReopository.findAllByItemId(itemId);
+        if (comments.size() > 0) {
+            List<ShortCommentDto> shortComments = comments.stream()
+                            .map(c -> toShortCommentDto(c))
+                            .collect(Collectors.toList());
+            itemDto.setComments(shortComments);
         }
         return itemDto;
     }
@@ -115,6 +132,34 @@ public class ItemServiceImpl implements ItemService {
         return repository.search(textSearch).stream()
                 .filter(i->i.isAvailable())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ShortCommentDto addCommentToItem(int userId, int itemId, CommentDto commentDto) {
+        if (commentDto.getText().isBlank()) {
+            throw new IncorrectDataCommentExeption("пустой комментарий");
+        }
+        User user = userService.getUserById(userId);
+        Optional<Item> item = repository.findById(itemId);
+        if (item.isEmpty()) {
+            throw new IncorrectItemIdExeption("неверный id вещи");
+        }
+        if (item.get().getUser().getId() == userId) {
+            throw new IncorrectItemDataExeption("неверный id пользователя, владелеу не может добавлять комментарий");
+        }
+        List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerIdAndStatus(itemId, userId,
+                BookingDtoState.APPROVED)
+                .stream()
+                .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
+                .collect(Collectors.toList());
+        if (bookings.size() < 1) {
+            throw new IncorrectItemDataExeption("неверный id пользователя, он еще не брал вещь");
+        }
+        Comment comment = toComment(commentDto);
+        comment.setItem(item.get());
+        comment.setAuthor(user);
+        commentsReopository.save(comment);
+        return toShortCommentDto(comment);
     }
 
     private Boolean isValidNewItemData(ItemDto itemDto) {
@@ -148,18 +193,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemDtoWithBooking fillItemBooking(ItemDtoWithBooking itemDto) {
-        List<Booking> allItemBokings = bookingRepository.findAllByItemIdAndStatusNotOrderByStartDesc(itemDto.getId(),
-                BookingDtoState.REJECTED);
+        List<Booking> allItemBokings = bookingRepository.findAllByItemIdOrderByStartDesc(itemDto.getId());
         List<Booking> lastBookings = allItemBokings.stream()
-                .filter(b->b.getStatus()==BookingDtoState.APPROVED)
-                .filter(b->b.getEnd().isBefore(LocalDateTime.now()))
+                .filter(b->b.getStart().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
         if (lastBookings.size() > 0) {
             lastBookings.sort((Booking b1, Booking b2)-> {
                 if (b1.getEnd().isAfter(b2.getEnd())) {
-                    return 1;
-                } else {
                     return -1;
+                } else {
+                    return 1;
                 }
             });
             Booking lastBooking = lastBookings.get(0);
@@ -167,6 +210,7 @@ public class ItemServiceImpl implements ItemService {
             itemDto.setLastBooking(toShortBookingDto(lastBooking));
         }
         List<Booking> nextBookings = allItemBokings.stream()
+                .filter(b->b.getStatus() != BookingDtoState.REJECTED)
                 .filter(b->b.getStart().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
         if (nextBookings.size() > 0) {

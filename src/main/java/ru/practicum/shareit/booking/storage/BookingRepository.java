@@ -13,6 +13,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findAllByBookerIdAndStatusNotOrderByStartDesc(int bookerId, BookingDtoState state);
     List<Booking> findAllByItemUserIdAndStatusOrderByStartDesc(int ownerId, BookingDtoState state);
     List<Booking> findAllByItemUserIdAndStatusNotOrderByStartDesc(int ownerId, BookingDtoState state);
-    List<Booking> findAllByItemIdAndStatusNotOrderByStartDesc(int itemId, BookingDtoState state);
+    List<Booking> findAllByItemIdOrderByStartDesc(int itemId);
+    List<Booking> findAllByItemIdAndBookerIdAndStatus(int itemId, int bokerId, BookingDtoState state);
 
 }

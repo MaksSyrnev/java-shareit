@@ -3,8 +3,11 @@ package ru.practicum.shareit.item.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
+import ru.practicum.shareit.item.dto.ShortCommentDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -46,7 +49,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDtoWithBooking getItemById(@RequestHeader("X-Sharer-User-Id") String headerUserId, @PathVariable int itemId) {
+    public ItemDtoWithBooking getItemById(@RequestHeader("X-Sharer-User-Id") String headerUserId,
+                                          @PathVariable int itemId) {
         int userId = Integer.parseInt(headerUserId);
         return service.getItemById(userId, itemId);
     }
@@ -54,5 +58,12 @@ public class ItemController {
     @GetMapping("/search")
     public List<Item> searchItem(@RequestParam String text) {
         return service.searchItem(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ShortCommentDto addCommentToItem(@RequestHeader("X-Sharer-User-Id") String headerUserId,
+                                            @PathVariable int itemId, @RequestBody CommentDto commentDto ) {
+        int userId = Integer.parseInt(headerUserId);
+        return service.addCommentToItem(userId, itemId, commentDto);
     }
 }
