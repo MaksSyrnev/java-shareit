@@ -85,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.isPresent()) {
             int idOwner = booking.get().getItem().getUser().getId();
             int idBooker = booking.get().getBooker().getId();
-            if ((idOwner == userId ) || (idBooker == userId)) {
+            if ((idOwner == userId) || (idBooker == userId)) {
                 return booking.get();
             } else {
                 throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
@@ -103,17 +103,17 @@ public class BookingServiceImpl implements BookingService {
         switch (state) {
             case "CURRENT":
                 return repository.findAllByBookerIdOrderByStartDesc(userId).stream()
-                        .filter(b->b.getStart().isBefore(LocalDateTime.now()))
-                        .filter(b->b.getEnd().isAfter(LocalDateTime.now()))
+                        .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
+                        .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
                 return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED).stream()
-                        .filter(b->b.getEnd().isBefore(LocalDateTime.now()))
+                        .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
                 return repository.findAllByBookerIdAndStatusNotOrderByStartDesc(userId, BookingDtoState.REJECTED)
                         .stream()
-                        .filter(b->b.getStart().isAfter(LocalDateTime.now()))
+                        .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
                 return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.WAITING);
@@ -136,18 +136,18 @@ public class BookingServiceImpl implements BookingService {
             case "CURRENT":
                 return repository.findAllByItemUserIdOrderByStartDesc(userId)
                         .stream()
-                        .filter(b->b.getStart().isBefore(LocalDateTime.now()))
-                        .filter(b->b.getEnd().isAfter(LocalDateTime.now()))
+                        .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
+                        .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
                 return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED)
                         .stream()
-                        .filter(b->b.getEnd().isBefore(LocalDateTime.now()))
+                        .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
                 return repository.findAllByItemUserIdAndStatusNotOrderByStartDesc(userId, BookingDtoState.REJECTED)
                         .stream()
-                        .filter(b->b.getStart().isAfter(LocalDateTime.now()))
+                        .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
                 return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.WAITING);

@@ -7,7 +7,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.ShortCommentDto;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -62,7 +61,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ShortCommentDto addCommentToItem(@RequestHeader("X-Sharer-User-Id") String headerUserId,
-                                            @PathVariable int itemId, @RequestBody CommentDto commentDto ) {
+                                            @PathVariable int itemId, @RequestBody CommentDto commentDto) {
         int userId = Integer.parseInt(headerUserId);
         return service.addCommentToItem(userId, itemId, commentDto);
     }

@@ -130,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
         }
         String textSearch = text.toLowerCase();
         return repository.search(textSearch).stream()
-                .filter(i->i.isAvailable())
+                .filter(i -> i.isAvailable())
                 .collect(Collectors.toList());
     }
 
@@ -195,10 +195,10 @@ public class ItemServiceImpl implements ItemService {
     private ItemDtoWithBooking fillItemBooking(ItemDtoWithBooking itemDto) {
         List<Booking> allItemBokings = bookingRepository.findAllByItemIdOrderByStartDesc(itemDto.getId());
         List<Booking> lastBookings = allItemBokings.stream()
-                .filter(b->b.getStart().isBefore(LocalDateTime.now()))
+                .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
         if (lastBookings.size() > 0) {
-            lastBookings.sort((Booking b1, Booking b2)-> {
+            lastBookings.sort((Booking b1, Booking b2) -> {
                 if (b1.getEnd().isAfter(b2.getEnd())) {
                     return -1;
                 } else {
@@ -210,11 +210,11 @@ public class ItemServiceImpl implements ItemService {
             itemDto.setLastBooking(toShortBookingDto(lastBooking));
         }
         List<Booking> nextBookings = allItemBokings.stream()
-                .filter(b->b.getStatus() != BookingDtoState.REJECTED)
-                .filter(b->b.getStart().isAfter(LocalDateTime.now()))
+                .filter(b -> b.getStatus() != BookingDtoState.REJECTED)
+                .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
         if (nextBookings.size() > 0) {
-            nextBookings.sort((Booking b1, Booking b2)-> {
+            nextBookings.sort((Booking b1, Booking b2) -> {
                 if (b1.getStart().isBefore(b2.getStart())) {
                     return -1;
                 } else {
