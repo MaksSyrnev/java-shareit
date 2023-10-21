@@ -15,7 +15,10 @@ public class BookingMapper {
         return boking;
     }
 
-    public static BookingDto toBookingDto(Booking booking) {
-         return null;
+    public static ShortBookingDto toShortBookingDto(Booking booking) {
+        ShortBookingDto shortBookingDto = new ShortBookingDto();
+        shortBookingDto.setId(booking.getId());
+        shortBookingDto.setBookerId(booking.getBooker().getId());
+        return shortBookingDto;
     }
 }
