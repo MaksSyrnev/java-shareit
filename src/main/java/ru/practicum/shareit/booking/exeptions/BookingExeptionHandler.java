@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.exeption.ErrorResponse;
 
+import java.util.NoSuchElementException;
+
 @Slf4j
 @RestControllerAdvice(assignableTypes = {BookingController.class})
 public class BookingExeptionHandler {
@@ -29,6 +31,16 @@ public class BookingExeptionHandler {
                 "Не найден id", e.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNoSuchElementInBoking(final NoSuchElementException e) {
+        log.error("валидация данных: - '{}'", e.getMessage());
+        return new ErrorResponse(
+                "Не найден id", e.getMessage()
+        );
+    }
+
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

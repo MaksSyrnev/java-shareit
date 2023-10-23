@@ -26,7 +26,7 @@ public class BookingController {
     @PostMapping
     public Booking addBooking(@RequestHeader("X-Sharer-User-Id") String headerUserId,
                               @RequestBody BookingDto bookingDto) {
-        log.info("вызов эндпоинта POST /bookings, входящий json {} ", bookingDto);
+        log.debug("вызов эндпоинта POST /bookings, входящий json {} ", bookingDto);
         int userId = Integer.parseInt(headerUserId);
         return bookingService.addBooking(userId, bookingDto);
     }
@@ -34,7 +34,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public Booking approveBooking(@RequestHeader("X-Sharer-User-Id") String headerUserId,
                                      @PathVariable int bookingId, @RequestParam Boolean approved) {
-        log.info("вызов эндпоинта PATCH /bookings/{},  approved - {} ", bookingId, approved);
+        log.debug("вызов эндпоинта PATCH /bookings/{},  approved - {} ", bookingId, approved);
         int userId = Integer.parseInt(headerUserId);
         return bookingService.approveBooking(userId, bookingId, approved);
     }
@@ -42,7 +42,7 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public Booking getBookingById(@RequestHeader("X-Sharer-User-Id") String headerUserId,
                                      @PathVariable int bookingId) {
-        log.info("вызов эндпоинта GET /bookings/{}   ", bookingId);
+        log.debug("вызов эндпоинта GET /bookings/{}   ", bookingId);
         int userId = Integer.parseInt(headerUserId);
         return bookingService.getBookingById(userId, bookingId);
     }
@@ -50,6 +50,7 @@ public class BookingController {
     @GetMapping
     public List<Booking> getBookingByState(@RequestHeader("X-Sharer-User-Id") String headerUserId,
                                            @RequestParam(defaultValue = "ALL") String state) {
+        log.debug("вызов эндпоинта GET /bookings/  с параметром - {} ", state);
         int userId = Integer.parseInt(headerUserId);
         return bookingService.getBookingByState(userId, state);
     }
@@ -57,6 +58,7 @@ public class BookingController {
     @GetMapping("/owner")
     public List<Booking> getBookingByOwner(@RequestHeader("X-Sharer-User-Id") String headerUserId,
                                         @RequestParam(defaultValue = "ALL") String state) {
+        log.debug("вызов эндпоинта GET /bookings/owner  с параметром - {} ", state);
         int userId = Integer.parseInt(headerUserId);
         return bookingService.getBookingByOwner(userId, state);
     }

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingDtoState;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.exeptions.IncorrectBookingDataExeption;
 import ru.practicum.shareit.booking.exeptions.IncorrectItemIdOrUserIdBoking;
@@ -38,65 +38,62 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking addBooking(int userId, BookingDto bookingDto) {
-        log.info("букинг пришел такой {}", bookingDto);
-        bookingDto.setStatus(BookingDtoState.WAITING);
+        log.info("+ addBooking: {}", bookingDto);
+        bookingDto.setStatus(BookingStatus.WAITING);
         if (!isValidDateBookingDto(bookingDto)) {
             throw new IncorrectBookingDataExeption("Даты бронирования некорректные");
         }
-        Optional<User> user = userRepository.findById(userId);
-        Optional<Item> item = itemRepository.findById(bookingDto.getItemId());
-        if (user.isEmpty() || item.isEmpty() || (user.get().getId() == item.get().getUser().getId())) {
+        Optional<User> user = Optional.of(userRepository.findById(userId).orElseThrow());
+        Optional<Item> item = Optional.of(itemRepository.findById(bookingDto.getItemId()).orElseThrow());
+        if (user.get().getId() == item.get().getUser().getId()) {
             throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
         } else if (!item.get().isAvailable()) {
             throw new IncorrectBookingDataExeption("Вещь недоступна к бронированию");
         }
-        return repository.save(BookingMapper.toBooking(bookingDto, user.get(), item.get()));
+        User booker = user.get();
+        Item itemBooking = item.get();
+        Booking newBooking = BookingMapper.toBooking(bookingDto, booker, itemBooking);
+        return repository.save(newBooking);
     }
 
     @Override
     public Booking approveBooking(int userId, int bookingId, Boolean approved) {
-        Optional<Booking> booking = repository.findById(bookingId);
-        log.info("сервис апрув букинга - {}, найден  - {} ", bookingId, booking.isPresent());
-        if (booking.isPresent()) {
-            int idOwner = booking.get().getItem().getUser().getId();
-            if (idOwner != userId) {
-                throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
-            }
-            if (approved) {
-                BookingDtoState currentStatus = booking.get().getStatus();
-                if (!(currentStatus.name() == "APPROVED")) {
-                    booking.get().setStatus(BookingDtoState.APPROVED);
-                    return repository.save(booking.get());
-                }
-                throw new IncorrectBookingDataExeption("Бронирование уже подтверждено");
-            } else {
-                booking.get().setStatus(BookingDtoState.REJECTED);
+        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow();
+        log.info("+ approveBooking: {}, findBooking: {}, userID: {}", bookingId, booking.isPresent(), userId);
+        int idOwner = booking.get().getItem().getUser().getId();
+        if (idOwner != userId) {
+            throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
+        }
+        if (approved) {
+            BookingStatus currentStatus = booking.get().getStatus();
+            if (currentStatus != BookingStatus.APPROVED) {
+                booking.get().setStatus(BookingStatus.APPROVED);
                 return repository.save(booking.get());
             }
+            throw new IncorrectBookingDataExeption("Бронирование уже подтверждено");
         } else {
-            throw new IncorrectItemIdOrUserIdBoking("нет такого id букинга");
+            booking.get().setStatus(BookingStatus.REJECTED);
+            return repository.save(booking.get());
         }
-
     }
 
     @Override
     public Booking getBookingById(int userId, int bookingId) {
-        Optional<Booking> booking = repository.findById(bookingId);
-        if (booking.isPresent()) {
-            int idOwner = booking.get().getItem().getUser().getId();
-            int idBooker = booking.get().getBooker().getId();
-            if ((idOwner == userId) || (idBooker == userId)) {
-                return booking.get();
-            } else {
-                throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
-            }
+        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow();
+        log.info("+ getBookingById: букинг - {}, найден -  {}", bookingId, booking.isPresent());
+        int idOwner = booking.get().getItem().getUser().getId();
+        int idBooker = booking.get().getBooker().getId();
+        if ((idOwner == userId) || (idBooker == userId)) {
+             return booking.get();
+        } else {
+            throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
         }
-        throw new IncorrectItemIdOrUserIdBoking("нет такого id букинга");
     }
 
     @Override
     public List<Booking> getBookingByState(int userId, String state) {
         Optional<User> user = userRepository.findById(userId);
+        log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user.isPresent(), state);
         if (user.isEmpty()) {
             throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
         }
@@ -107,18 +104,18 @@ public class BookingServiceImpl implements BookingService {
                         .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED).stream()
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED).stream()
                         .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
-                return repository.findAllByBookerIdAndStatusNotOrderByStartDesc(userId, BookingDtoState.REJECTED)
+                return repository.findAllByBookerIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED)
                         .stream()
                         .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.WAITING);
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
             case "REJECTED":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingDtoState.REJECTED);
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
             case "ALL":
                 return repository.findAllByBookerIdOrderByStartDesc(userId);
             default:
@@ -140,19 +137,19 @@ public class BookingServiceImpl implements BookingService {
                         .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.APPROVED)
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED)
                         .stream()
                         .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
-                return repository.findAllByItemUserIdAndStatusNotOrderByStartDesc(userId, BookingDtoState.REJECTED)
+                return repository.findAllByItemUserIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED)
                         .stream()
                         .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.WAITING);
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
             case "REJECTED":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingDtoState.REJECTED);
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
             case "ALL":
                 return repository.findAllByItemUserIdOrderByStartDesc(userId);
             default:

@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -10,6 +11,8 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+
+import static ru.practicum.shareit.user.dto.UserMapper.toUser;
 
 @Slf4j
 @Service
@@ -37,7 +40,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addUser(User user) {
+    public User addUser(NewUserDto newUserDto) {
+        User user = toUser(newUserDto);
         return repository.save(user);
     }
 

@@ -3,7 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.BookingDtoState;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -98,9 +98,9 @@ public class ItemServiceImpl implements ItemService {
             fillItemBooking(itemDto);
         }
         List<Comment> comments = commentsReopository.findAllByItemId(itemId);
-        if (comments.size() > 0) {
+        if (!comments.isEmpty()) {
             List<ShortCommentDto> shortComments = comments.stream()
-                            .map(c -> toShortCommentDto(c))
+                            .map(coment -> toShortCommentDto(coment))
                             .collect(Collectors.toList());
             itemDto.setComments(shortComments);
         }
@@ -111,7 +111,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDtoWithBooking> getAllItemsByUser(int userId) {
         final List<ItemDtoWithBooking> itemsDtoWithBookings = new ArrayList<>();
         final List<Item> itemsAll = repository.findAllByUserIdOrderByIdAsc(userId);
-        if (itemsAll.size() < 1) {
+        if (itemsAll.isEmpty()) {
             return itemsDtoWithBookings;
         }
         for (Item item : itemsAll) {
@@ -130,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
         }
         String textSearch = text.toLowerCase();
         return repository.search(textSearch).stream()
-                .filter(i -> i.isAvailable())
+                .filter(item -> item.isAvailable())
                 .collect(Collectors.toList());
     }
 
@@ -148,11 +148,11 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectItemDataExeption("неверный id пользователя, владелеу не может добавлять комментарий");
         }
         List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerIdAndStatus(itemId, userId,
-                BookingDtoState.APPROVED)
+                BookingStatus.APPROVED)
                 .stream()
-                .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
+                .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
-        if (bookings.size() < 1) {
+        if (bookings.isEmpty()) {
             throw new IncorrectItemDataExeption("неверный id пользователя, он еще не брал вещь");
         }
         Comment comment = toComment(commentDto);
@@ -193,13 +193,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemDtoWithBooking fillItemBooking(ItemDtoWithBooking itemDto) {
-        List<Booking> allItemBokings = bookingRepository.findAllByItemIdOrderByStartDesc(itemDto.getId());
-        List<Booking> lastBookings = allItemBokings.stream()
-                .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
+        final List<Booking> allItemBokings = bookingRepository.findAllByItemIdOrderByStartDesc(itemDto.getId());
+        final List<Booking> lastBookings = allItemBokings.stream()
+                .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
-        if (lastBookings.size() > 0) {
-            lastBookings.sort((Booking b1, Booking b2) -> {
-                if (b1.getEnd().isAfter(b2.getEnd())) {
+        if (!lastBookings.isEmpty()) {
+            lastBookings.sort((Booking booking1, Booking booking2) -> {
+                if (booking1.getEnd().isAfter(booking2.getEnd())) {
                     return -1;
                 } else {
                     return 1;
@@ -209,13 +209,13 @@ public class ItemServiceImpl implements ItemService {
             log.info("Найденный lastBooking - {}", lastBooking);
             itemDto.setLastBooking(toShortBookingDto(lastBooking));
         }
-        List<Booking> nextBookings = allItemBokings.stream()
-                .filter(b -> b.getStatus() != BookingDtoState.REJECTED)
-                .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
+        final List<Booking> nextBookings = allItemBokings.stream()
+                .filter(booking -> booking.getStatus() != BookingStatus.REJECTED)
+                .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
-        if (nextBookings.size() > 0) {
-            nextBookings.sort((Booking b1, Booking b2) -> {
-                if (b1.getStart().isBefore(b2.getStart())) {
+        if (!nextBookings.isEmpty()) {
+            nextBookings.sort((Booking booking1, Booking booking2) -> {
+                if (booking1.getStart().isBefore(booking2.getStart())) {
                     return -1;
                 } else {
                     return 1;
