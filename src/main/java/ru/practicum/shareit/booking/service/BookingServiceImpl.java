@@ -43,8 +43,11 @@ public class BookingServiceImpl implements BookingService {
         if (!isValidDateBookingDto(bookingDto)) {
             throw new IncorrectBookingDataExeption("Даты бронирования некорректные");
         }
-        Optional<User> user = Optional.of(userRepository.findById(userId).orElseThrow());
-        Optional<Item> item = Optional.of(itemRepository.findById(bookingDto.getItemId()).orElseThrow());
+        Optional<User> user = Optional.of(userRepository.findById(userId)).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
+
+        Optional<Item> item = Optional.of(itemRepository.findById(bookingDto.getItemId())).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("вещь с таким id не найдены"));
         if (user.get().getId() == item.get().getUser().getId()) {
             throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
         } else if (!item.get().isAvailable()) {
@@ -58,7 +61,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking approveBooking(int userId, int bookingId, Boolean approved) {
-        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow();
+        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
         log.info("+ approveBooking: {}, findBooking: {}, userID: {}", bookingId, booking.isPresent(), userId);
         int idOwner = booking.get().getItem().getUser().getId();
         if (idOwner != userId) {
@@ -79,7 +83,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking getBookingById(int userId, int bookingId) {
-        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow();
+        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
         log.info("+ getBookingById: букинг - {}, найден -  {}", bookingId, booking.isPresent());
         int idOwner = booking.get().getItem().getUser().getId();
         int idBooker = booking.get().getBooker().getId();

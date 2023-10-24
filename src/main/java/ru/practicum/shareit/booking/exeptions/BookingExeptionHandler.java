@@ -34,13 +34,12 @@ public class BookingExeptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNoSuchElementInBoking(final NoSuchElementException e) {
+    public ErrorResponse handleIncorrectId(final NoSuchElementException e) {
         log.error("валидация данных: - '{}'", e.getMessage());
         return new ErrorResponse(
                 "Не найден id", e.getMessage()
         );
     }
-
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
