@@ -1,11 +1,9 @@
 package ru.practicum.shareit.user.storage;
 
-import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
 
-@Repository
 public class UserStorageImpl implements UserStorage {
     private int id;
     private final Map<Integer,User> users;

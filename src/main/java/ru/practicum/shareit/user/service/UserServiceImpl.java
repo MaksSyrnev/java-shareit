@@ -3,28 +3,30 @@ package ru.practicum.shareit.user.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
-import ru.practicum.shareit.user.exeption.IncorrectUserEmail;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
 
+import static ru.practicum.shareit.user.dto.UserMapper.toUser;
+
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    private final UserStorage storage;
+    private final UserRepository repository;
 
     @Autowired
-    public UserServiceImpl(UserStorage storage) {
-        this.storage = storage;
+    public UserServiceImpl(UserRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public User getUserById(int id) {
-        Optional<User> usrStorage = storage.getUser(id);
+        Optional<User> usrStorage = repository.findById(id);
         if (usrStorage.isEmpty()) {
             log.error("getUserById -  {}, неверный id", id);
             throw new IncorrectUserIdException("Пользователь с таким id не найден");
@@ -34,24 +36,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUsers() {
-        return storage.getAll();
+        return repository.findAll();
     }
 
     @Override
-    public User addUser(User user) {
-        String email = user.getEmail();
-        if (isNotUniqEmail(email)) {
-            log.error("addUser, почта уже есть в сервисе -  {} ", user.getEmail());
-            throw new IncorrectUserEmail("почта уже зарегистрирована в сервисе");
-        }
-        return storage.addUser(user);
+    public User addUser(NewUserDto newUserDto) {
+        User user = toUser(newUserDto);
+        return repository.save(user);
     }
 
     @Override
     public User updateUser(int id, UserDto userDto) {
         Optional<String> name = Optional.ofNullable(userDto.getName());
         Optional<String> email = Optional.ofNullable(userDto.getEmail());
-        Optional<User> usrStorage = storage.getUser(id);
+        Optional<User> usrStorage = repository.findById(id);
         if (usrStorage.isEmpty()) {
             log.error("updateUser -  {}, неверный id", id);
             throw new IncorrectUserIdException("нет пользователя с таким id");
@@ -60,33 +58,23 @@ public class UserServiceImpl implements UserService {
             usrStorage.get().setName(name.get());
         }
         if (email.isPresent()) {
-            boolean isEmailSome = usrStorage.get().getEmail().equals(email.get());
-            if (isNotUniqEmail(email.get()) && !isEmailSome) {
-                log.error("updateUser, почта уже есть в сервисе -  {} ", email.get());
-                throw new IncorrectUserEmail("почта уже зарегистрирована в сервисе");
-            }
             usrStorage.get().setEmail(email.get());
         }
+        repository.save(usrStorage.get());
         return usrStorage.get();
     }
 
     @Override
-    public int deleteUserById(int id) {
-        return storage.deleteUser(id);
+    public void deleteUserById(int id) {
+        Optional<User> user = repository.findById(id);
+        if (user.isPresent()) {
+            repository.delete(user.get());
+        }
     }
 
     @Override
-    public int deleteAllUsers() {
-        return storage.deleteAll();
+    public void deleteAllUsers() {
+        repository.deleteAll();
     }
 
-    private boolean isNotUniqEmail(String email) {
-        List<User> users = getAllUsers();
-        for (User user: users) {
-            if (email.equals(user.getEmail())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

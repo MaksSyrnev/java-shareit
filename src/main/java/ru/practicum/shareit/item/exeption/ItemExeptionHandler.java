@@ -46,4 +46,13 @@ public class ItemExeptionHandler {
                 "Ошибка данных", e.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public  ErrorResponse handleIncorrectDataComment(final IncorrectDataCommentExeption e) {
+        log.error("валидация данных : - '{}'", e.getMessage());
+        return new ErrorResponse(
+                "Ошибка данных", e.getMessage()
+        );
+    }
 }
