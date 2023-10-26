@@ -43,53 +43,51 @@ public class BookingServiceImpl implements BookingService {
         if (!isValidDateBookingDto(bookingDto)) {
             throw new IncorrectBookingDataExeption("Даты бронирования некорректные");
         }
-        Optional<User> user = Optional.of(userRepository.findById(userId)).orElseThrow(
+        User booker = userRepository.findById(userId).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
 
-        Optional<Item> item = Optional.of(itemRepository.findById(bookingDto.getItemId())).orElseThrow(
+        Item itemBooking = itemRepository.findById(bookingDto.getItemId()).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("вещь с таким id не найдены"));
-        if (user.get().getId() == item.get().getUser().getId()) {
-            throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
-        } else if (!item.get().isAvailable()) {
+        if (booker.getId() == itemBooking.getUser().getId()) {
+            throw new IncorrectItemIdOrUserIdBoking("Пользователь и владелец совпадают по id");
+        } else if (!itemBooking.isAvailable()) {
             throw new IncorrectBookingDataExeption("Вещь недоступна к бронированию");
         }
-        User booker = user.get();
-        Item itemBooking = item.get();
         Booking newBooking = BookingMapper.toBooking(bookingDto, booker, itemBooking);
         return repository.save(newBooking);
     }
 
     @Override
     public Booking approveBooking(int userId, int bookingId, Boolean approved) {
-        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow(
+        Booking booking = repository.findById(bookingId).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
-        log.info("+ approveBooking: {}, findBooking: {}, userID: {}", bookingId, booking.isPresent(), userId);
-        int idOwner = booking.get().getItem().getUser().getId();
+        log.info("+ approveBooking: {}, findBooking: {}, userID: {}", bookingId, booking, userId);
+        int idOwner = booking.getItem().getUser().getId();
         if (idOwner != userId) {
             throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
         }
         if (approved) {
-            BookingStatus currentStatus = booking.get().getStatus();
+            BookingStatus currentStatus = booking.getStatus();
             if (currentStatus != BookingStatus.APPROVED) {
-                booking.get().setStatus(BookingStatus.APPROVED);
-                return repository.save(booking.get());
+                booking.setStatus(BookingStatus.APPROVED);
+                return repository.save(booking);
             }
             throw new IncorrectBookingDataExeption("Бронирование уже подтверждено");
         } else {
-            booking.get().setStatus(BookingStatus.REJECTED);
-            return repository.save(booking.get());
+            booking.setStatus(BookingStatus.REJECTED);
+            return repository.save(booking);
         }
     }
 
     @Override
     public Booking getBookingById(int userId, int bookingId) {
-        Optional<Booking> booking = Optional.of(repository.findById(bookingId)).orElseThrow(
+        Booking booking = repository.findById(bookingId).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
-        log.info("+ getBookingById: букинг - {}, найден -  {}", bookingId, booking.isPresent());
-        int idOwner = booking.get().getItem().getUser().getId();
-        int idBooker = booking.get().getBooker().getId();
+        log.info("+ getBookingById: букинг - {}, найден -  {}", bookingId, booking);
+        int idOwner = booking.getItem().getUser().getId();
+        int idBooker = booking.getBooker().getId();
         if ((idOwner == userId) || (idBooker == userId)) {
-             return booking.get();
+             return booking;
         } else {
             throw new IncorrectItemIdOrUserIdBoking("Доступ запрещен");
         }
@@ -97,11 +95,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingByState(int userId, String state) {
-        Optional<User> user = userRepository.findById(userId);
-        log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user.isPresent(), state);
-        if (user.isEmpty()) {
-            throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найдены"));
+        log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user, state);
         switch (state) {
             case "CURRENT":
                 return repository.findAllByBookerIdOrderByStartDesc(userId).stream()
@@ -130,10 +126,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingByOwner(int userId, String state) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectItemIdOrUserIdBoking("Пользователь или вещь с таким id не найдены");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
         switch (state) {
             case "CURRENT":
                 return repository.findAllByItemUserIdOrderByStartDesc(userId)
