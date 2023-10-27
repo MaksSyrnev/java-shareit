@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
@@ -20,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.domain.PageRequest.of;
 
 @Slf4j
 @Service
@@ -94,63 +98,84 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getBookingByState(int userId, String state) {
+    public List<Booking> getBookingByState(int userId, String state, int from, int size) {
+        if ((from < 0) || (size < 0)) {
+            throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
+        }
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найдены"));
         log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user, state);
+        PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
             case "CURRENT":
-                return repository.findAllByBookerIdOrderByStartDesc(userId).stream()
+                return repository.findAllByBookerIdOrderByStartDesc(userId, page)
+                        .getContent()
+                        .stream()
                         .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
                         .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED).stream()
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED, page)
+                        .getContent()
+                        .stream()
                         .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
-                return repository.findAllByBookerIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED)
+                return repository.findAllByBookerIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED, page)
+                        .getContent()
                         .stream()
                         .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING, page)
+                        .getContent();
             case "REJECTED":
-                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+                return repository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED, page)
+                        .getContent();
             case "ALL":
-                return repository.findAllByBookerIdOrderByStartDesc(userId);
+                return repository.findAllByBookerIdOrderByStartDesc(userId, page).getContent();
             default:
                 throw new IncorrectStatusBookingExeption(state);
         }
     }
 
     @Override
-    public List<Booking> getBookingByOwner(int userId, String state) {
+    public List<Booking> getBookingByOwner(int userId, String state, int from, int size) {
+        if ((from < 0) || (size < 0)) {
+            throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
+        }
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
+        PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
             case "CURRENT":
-                return repository.findAllByItemUserIdOrderByStartDesc(userId)
+                return repository.findAllByItemUserIdOrderByStartDesc(userId, page)
+                        .getContent()
                         .stream()
                         .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
                         .filter(b -> b.getEnd().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "PAST":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED)
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.APPROVED, page)
+                        .getContent()
                         .stream()
                         .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
-                return repository.findAllByItemUserIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED)
+                return repository.findAllByItemUserIdAndStatusNotOrderByStartDesc(userId, BookingStatus.REJECTED, page)
+                        .getContent()
                         .stream()
                         .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING, page)
+                        .getContent();
             case "REJECTED":
-                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+                return repository.findAllByItemUserIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED, page)
+                        .getContent();
             case "ALL":
-                return repository.findAllByItemUserIdOrderByStartDesc(userId);
+                return repository.findAllByItemUserIdOrderByStartDesc(userId, page)
+                        .getContent();
             default:
                 throw new IncorrectStatusBookingExeption(state);
         }

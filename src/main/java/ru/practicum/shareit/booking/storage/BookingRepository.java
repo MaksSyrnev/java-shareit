@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.storage;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
@@ -7,17 +9,17 @@ import ru.practicum.shareit.booking.model.Booking;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
-    List<Booking> findAllByBookerIdOrderByStartDesc(int bookerId);
+    Page<Booking> findAllByBookerIdOrderByStartDesc(int bookerId, Pageable page);
 
-    List<Booking> findAllByItemUserIdOrderByStartDesc(int ownerId);
+    Page<Booking> findAllByItemUserIdOrderByStartDesc(int ownerId, Pageable page);
 
-    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(int bookerId, BookingStatus state);
+    Page<Booking> findAllByBookerIdAndStatusOrderByStartDesc(int bookerId, BookingStatus state, Pageable page);
 
-    List<Booking> findAllByBookerIdAndStatusNotOrderByStartDesc(int bookerId, BookingStatus state);
+    Page<Booking> findAllByBookerIdAndStatusNotOrderByStartDesc(int bookerId, BookingStatus state, Pageable page);
 
-    List<Booking> findAllByItemUserIdAndStatusOrderByStartDesc(int ownerId, BookingStatus state);
+    Page<Booking> findAllByItemUserIdAndStatusOrderByStartDesc(int ownerId, BookingStatus state, Pageable page);
 
-    List<Booking> findAllByItemUserIdAndStatusNotOrderByStartDesc(int ownerId, BookingStatus state);
+    Page<Booking> findAllByItemUserIdAndStatusNotOrderByStartDesc(int ownerId, BookingStatus state, Pageable page);
 
     List<Booking> findAllByItemIdOrderByStartDesc(int itemId);
 

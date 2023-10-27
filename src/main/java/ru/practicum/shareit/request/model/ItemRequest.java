@@ -12,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-item-requests.
@@ -29,4 +30,5 @@ public class ItemRequest {
     @ManyToOne
     @JoinColumn(name = "requestor_id")
     private User requestor;
+    LocalDateTime created = LocalDateTime.now();
 }

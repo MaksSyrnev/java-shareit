@@ -37,7 +37,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item addItem(@RequestHeader("X-Sharer-User-Id") String headerUserId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") String headerUserId, @Valid @RequestBody ItemDto itemDto) {
         int userId = Integer.parseInt(headerUserId);
         return service.addItem(userId, itemDto);
     }
@@ -50,9 +50,12 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDtoWithBooking> getItems(@RequestHeader("X-Sharer-User-Id") String headerUserId) {
+    public List<ItemDtoWithBooking> getItems(@RequestHeader("X-Sharer-User-Id") String headerUserId,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "20") int size) {
+        log.info("+GET /items, параметры from - {}, size - {}", from, size);
         int userId = Integer.parseInt(headerUserId);
-        return service.getAllItemsByUser(userId);
+        return service.getAllItemsByUser(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -63,8 +66,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<Item> searchItem(@RequestParam String text) {
-        return service.searchItem(text);
+    public List<Item> searchItem(@RequestParam String text,
+                                 @RequestParam(defaultValue = "0") int from,
+                                 @RequestParam(defaultValue = "20") int size) {
+        return service.searchItem(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

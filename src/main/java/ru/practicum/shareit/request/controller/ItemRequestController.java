@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
@@ -40,36 +41,24 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    public List<ItemRequest> getAllUserRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId) {
+    public List<ItemRequestWithItemsDto> getAllUserRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId) {
         int userId = Integer.parseInt(headerUserId);
         return service.getAllUserRequest(userId);
     }
 
     @GetMapping("/all")
-    public List<ItemRequest> getAllRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
-                                              @RequestParam int from, @RequestParam int size) {
+    public List<ItemRequestWithItemsDto> getAllRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
+                                              @RequestParam(defaultValue = "0") int from,
+                                              @RequestParam(defaultValue = "20") int size) {
+        log.info("+GET /requests/all, параметры from - {}, size - {}", from, size);
         int userId = Integer.parseInt(headerUserId);
-        return service.getAllRequest(from, size);
+        return service.getAllRequest(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequest getRequestById(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
+    public ItemRequestWithItemsDto getRequestById(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
                                       @PathVariable int requestId) {
-        //int userId = Integer.parseInt(headerUserId);
-        return service.getRequestById(requestId);
+        int userId = Integer.parseInt(headerUserId);
+        return service.getRequestById(userId, requestId);
     }
 }
-
-/*
-
-четыре новых эндпоинта:
-
-- POST /requests — добавить новый запрос вещи. Основная часть запроса — текст запроса, где пользователь описывает, какая именно вещь ему нужна.
-
-- GET /requests — получить список своих запросов вместе с данными об ответах на них. Для каждого запроса должны указываться описание, дата и время создания и список ответов в формате: id вещи, название, её описание description, а также requestId запроса и признак доступности вещи available. Так в дальнейшем, используя указанные id вещей, можно будет получить подробную информацию о каждой вещи. Запросы должны возвращаться в отсортированном порядке от более новых к более старым.
-
-- GET /requests/all?from={from}&size={size} — получить список запросов, созданных другими пользователями. С помощью этого эндпоинта пользователи смогут просматривать существующие запросы, на которые они могли бы ответить. Запросы сортируются по дате создания: от более новых к более старым. Результаты должны возвращаться постранично. Для этого нужно передать два параметра: from — индекс первого элемента, начиная с 0, и size — количество элементов для отображения.
-
-- GET /requests/{requestId} — получить данные об одном конкретном запросе вместе с данными об ответах на него в том же формате, что и в эндпоинте GET /requests. Посмотреть данные об отдельном запросе может любой пользователь.
-
- */

@@ -13,6 +13,6 @@ public class ItemDto {
     private User user;
     private String name;
     private String description;
-    private String available;
-    private ItemRequest request;
+    private Boolean available;
+    private int requestId;
 }

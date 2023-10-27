@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
@@ -19,6 +20,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentReopository;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
@@ -29,9 +31,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.domain.PageRequest.of;
 import static ru.practicum.shareit.booking.dto.BookingMapper.toShortBookingDto;
 import static ru.practicum.shareit.item.dto.CommentMapper.toComment;
 import static ru.practicum.shareit.item.dto.CommentMapper.toShortCommentDto;
+import static ru.practicum.shareit.item.dto.ItemMapper.toItemDto;
 import static ru.practicum.shareit.item.dto.ItemMapper.toItemDtoWithBooking;
 
 @Slf4j
@@ -41,18 +45,21 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentReopository commentsReopository;
+    private final ItemRequestReopository requestReopository;
 
     @Autowired
     public ItemServiceImpl(ItemRepository repository, UserService userService,
-                           BookingRepository bookingRepository, CommentReopository commentsReopository) {
+                           BookingRepository bookingRepository, CommentReopository commentsReopository,
+                           ItemRequestReopository requestReopository) {
         this.repository = repository;
         this.userService = userService;
         this.bookingRepository = bookingRepository;
         this.commentsReopository = commentsReopository;
+        this.requestReopository = requestReopository;
     }
 
     @Override
-    public Item addItem(int userId, ItemDto itemDto) {
+    public ItemDto addItem(int userId, ItemDto itemDto) {
         log.info("добавление item, пришло : userId - {}, itemDto- {}", userId, itemDto);
         try {
             if (!isValidNewItemData(itemDto)) {
@@ -63,9 +70,16 @@ public class ItemServiceImpl implements ItemService {
             item.setUser(user);
             item.setName(itemDto.getName());
             item.setDescription(itemDto.getDescription());
-            item.setAvailable(Boolean.parseBoolean(itemDto.getAvailable()));
+            item.setAvailable(itemDto.getAvailable());
+            Optional<Integer> requestId = Optional.ofNullable(itemDto.getRequestId());
+            if (requestId.isPresent() && (requestId.get() != 0)) {
+                ItemRequest request = requestReopository.findById(requestId.get()).orElseThrow(
+                        () -> new IncorrectItemIdExeption("неверный id запроса"));
+                item.setRequest(request);
+            }
             log.info("добавление item, отправка в сторадж : item - {}", item);
-            return repository.save(item);
+            Item finalItem = repository.save(item);
+            return toItemDto(finalItem);
         } catch (IncorrectUserIdException e) {
             throw new IncorrectItemIdExeption(e.getMessage());
         }
@@ -108,9 +122,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDtoWithBooking> getAllItemsByUser(int userId) {
+    public List<ItemDtoWithBooking> getAllItemsByUser(int userId, int from, int size) {
+        if ((from < 0) || (size < 0)) {
+            throw new IncorrectItemDataExeption("некорректное значение парметров пагинации");
+        }
+        User user = userService.getUserById(userId);
+        PageRequest page = of(from > 0 ? from / size : 0, size);
         final List<ItemDtoWithBooking> itemsDtoWithBookings = new ArrayList<>();
-        final List<Item> itemsAll = repository.findAllByUserIdOrderByIdAsc(userId);
+        final List<Item> itemsAll = repository.findAllByUserIdOrderByIdAsc(userId, page).getContent();
         if (itemsAll.isEmpty()) {
             return itemsDtoWithBookings;
         }
@@ -123,13 +142,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> searchItem(String text) {
+    public List<Item> searchItem(String text, int from, int size) {
+        if ((from < 0) || (size < 0)) {
+            throw new IncorrectItemDataExeption("некорректное значение парметров пагинации");
+        }
+        PageRequest page = of(from > 0 ? from / size : 0, size);
         ArrayList<Item> itemsResultSearch = new ArrayList<>();
         if (text.isBlank()) {
             return itemsResultSearch;
         }
         String textSearch = text.toLowerCase();
-        return repository.search(textSearch).stream()
+        return repository.search(textSearch, page).getContent().stream()
                 .filter(item -> item.isAvailable())
                 .collect(Collectors.toList());
     }
@@ -165,9 +188,9 @@ public class ItemServiceImpl implements ItemService {
     private Boolean isValidNewItemData(ItemDto itemDto) {
         Optional<String> name = Optional.ofNullable(itemDto.getName());
         Optional<String> description = Optional.ofNullable(itemDto.getDescription());
-        Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
+        Optional<Boolean> available = Optional.ofNullable(itemDto.getAvailable());
         if (name.isEmpty() || name.get().isBlank() || description.isEmpty() || description.get().isBlank()
-                || available.isEmpty() || available.get().isBlank()) {
+                || available.isEmpty()) {
             return false;
         }
         return true;
@@ -182,13 +205,15 @@ public class ItemServiceImpl implements ItemService {
         if (description.isPresent()) {
             item.setDescription(description.get());
         }
-        Optional<String> available = Optional.ofNullable(itemDto.getAvailable());
+        Optional<Boolean> available = Optional.ofNullable(itemDto.getAvailable());
         if (available.isPresent()) {
-            item.setAvailable(Boolean.parseBoolean(available.get()));
+            item.setAvailable(available.get());
         }
-        Optional<ItemRequest> request = Optional.ofNullable(itemDto.getRequest());
-        if (request.isPresent()) {
-            item.setRequest(request.get());
+        Optional<Integer> requestId = Optional.ofNullable(itemDto.getRequestId());
+        if (requestId.isPresent() && (requestId.get() != 0)) {
+            ItemRequest request = requestReopository.findById(requestId.get()).orElseThrow(
+                    () -> new IncorrectItemIdExeption("неверный id запроса"));
+            item.setRequest(request);
         }
     }
 

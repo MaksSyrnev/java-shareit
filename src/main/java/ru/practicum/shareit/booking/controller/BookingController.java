@@ -57,18 +57,22 @@ public class BookingController {
 
     @GetMapping
     public List<Booking> getBookingByState(@RequestHeader("X-Sharer-User-Id") String headerUserId,
-                                           @RequestParam(defaultValue = "ALL") String state) {
-        log.debug("вызов эндпоинта GET /bookings/  с параметром - {} ", state);
+                                           @RequestParam(defaultValue = "ALL") String state,
+                                           @RequestParam(defaultValue = "0") int from,
+                                           @RequestParam(defaultValue = "20") int size) {
+        log.debug("вызов эндпоинта GET /bookings/  с параметром - {}, from - {}, size- {} ", state, from, size);
         int userId = Integer.parseInt(headerUserId);
-        return bookingService.getBookingByState(userId, state);
+        return bookingService.getBookingByState(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<Booking> getBookingByOwner(@RequestHeader("X-Sharer-User-Id") String headerUserId,
-                                        @RequestParam(defaultValue = "ALL") String state) {
-        log.debug("вызов эндпоинта GET /bookings/owner  с параметром - {} ", state);
+                                        @RequestParam(defaultValue = "ALL") String state,
+                                        @RequestParam(defaultValue = "0") int from,
+                                        @RequestParam(defaultValue = "20") int size) {
+        log.debug("вызов эндпоинта GET /bookings/owner  с параметром - {}, from - {}, size- {} ", state, from, size);
         int userId = Integer.parseInt(headerUserId);
-        return bookingService.getBookingByOwner(userId, state);
+        return bookingService.getBookingByOwner(userId, state, from, size);
     }
 
 }
