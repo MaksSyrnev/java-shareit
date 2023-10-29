@@ -29,4 +29,17 @@ public class ItemMapper {
         return itemDto;
     }
 
+    public static Item toItem(ItemDtoWithBooking itemDtoWithBooking) {
+        Item item = new Item();
+        item.setId(itemDtoWithBooking.getId());
+        item.setAvailable(itemDtoWithBooking.getAvailable());
+        item.setName(itemDtoWithBooking.getName());
+        item.setUser(itemDtoWithBooking.getUser());
+        item.setDescription(itemDtoWithBooking.getDescription());
+        Optional<ItemRequest> request = Optional.ofNullable(itemDtoWithBooking.getRequest());
+        if (request.isPresent()) {
+            item.setRequest(request.get());
+        }
+        return item;
+    }
 }

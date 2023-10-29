@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.exeption.ErrorResponse;
+import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {BookingController.class})
@@ -38,4 +39,14 @@ public class BookingExeptionHandler {
                 "Unknown state: " + e.getMessage(), e.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleIncorrectItemIdInBookingExeption(final IncorrectItemIdExeption e) {
+        log.error("валидация данных: - '{}'", e.getMessage());
+        return new ErrorResponse(
+                "Не найден id", e.getMessage()
+        );
+    }
+
 }

@@ -103,12 +103,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoWithBooking getItemById(int userId, int itemId) {
-        Optional<Item> wrapperItem = repository.findById(itemId);
-        if (wrapperItem.isEmpty()) {
-            throw new IncorrectItemIdExeption("неверный id вещи");
-        }
-        ItemDtoWithBooking itemDto = toItemDtoWithBooking(wrapperItem.get());
-        if (wrapperItem.get().getUser().getId() == userId) {
+        Item item = repository.findById(itemId).orElseThrow(
+                () -> new IncorrectItemIdExeption("неверный id вещи")
+        );
+        ItemDtoWithBooking itemDto = toItemDtoWithBooking(item);
+        if (item.getUser().getId() == userId) {
             fillItemBooking(itemDto);
         }
         List<Comment> comments = commentsReopository.findAllByItemId(itemId);

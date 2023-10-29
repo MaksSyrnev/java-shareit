@@ -12,11 +12,12 @@ import ru.practicum.shareit.booking.exeptions.IncorrectItemIdOrUserIdBoking;
 import ru.practicum.shareit.booking.exeptions.IncorrectStatusBookingExeption;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,20 +25,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.domain.PageRequest.of;
+import static ru.practicum.shareit.item.dto.ItemMapper.toItem;
 
 @Slf4j
 @Service
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
-    private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ItemService itemService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository repository, ItemRepository itemRepository,
-                              UserRepository userRepository) {
+    public BookingServiceImpl(BookingRepository repository, ItemService itemService, UserService userService) {
         this.repository = repository;
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.itemService = itemService;
     }
 
     @Override
@@ -47,24 +48,25 @@ public class BookingServiceImpl implements BookingService {
         if (!isValidDateBookingDto(bookingDto)) {
             throw new IncorrectBookingDataExeption("Даты бронирования некорректные");
         }
-        User booker = userRepository.findById(userId).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
-
-        Item itemBooking = itemRepository.findById(bookingDto.getItemId()).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("вещь с таким id не найдены"));
-        if (booker.getId() == itemBooking.getUser().getId()) {
+        User booker = userService.getUserById(userId);
+        ItemDtoWithBooking itemBooking = itemService.getItemById(userId, bookingDto.getItemId());
+        Item item  = toItem(itemBooking);
+        if (booker.getId() == item.getUser().getId()) {
             throw new IncorrectItemIdOrUserIdBoking("Пользователь и владелец совпадают по id");
-        } else if (!itemBooking.isAvailable()) {
+        } else if (!itemBooking.getAvailable()) {
             throw new IncorrectBookingDataExeption("Вещь недоступна к бронированию");
         }
-        Booking newBooking = BookingMapper.toBooking(bookingDto, booker, itemBooking);
+        Booking newBooking = BookingMapper.toBooking(bookingDto, booker, item);
         return repository.save(newBooking);
     }
 
     @Override
     public Booking approveBooking(int userId, int bookingId, Boolean approved) {
-        Booking booking = repository.findById(bookingId).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
+        Optional<Booking> finedBooking = repository.findById(bookingId);
+        if (finedBooking.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден");
+        }
+        Booking booking = finedBooking.get();
         log.info("+ approveBooking: {}, findBooking: {}, userID: {}", bookingId, booking, userId);
         int idOwner = booking.getItem().getUser().getId();
         if (idOwner != userId) {
@@ -85,8 +87,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking getBookingById(int userId, int bookingId) {
-        Booking booking = repository.findById(bookingId).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден"));
+        Optional<Booking> finedBooking = repository.findById(bookingId);
+        if (finedBooking.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("Букинг с таким id не найден");
+        }
+        Booking booking = finedBooking.get();
         log.info("+ getBookingById: букинг - {}, найден -  {}", bookingId, booking);
         int idOwner = booking.getItem().getUser().getId();
         int idBooker = booking.getBooker().getId();
@@ -100,10 +105,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getBookingByState(int userId, String state, int from, int size) {
         if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
+            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
         }
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найдены"));
+        User user = userService.getUserById(userId);
         log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user, state);
         PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
@@ -144,8 +148,7 @@ public class BookingServiceImpl implements BookingService {
         if ((from < 0) || (size < 0)) {
             throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
         }
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IncorrectItemIdOrUserIdBoking("Пользователь с таким id не найден"));
+        User user = userService.getUserById(userId);
         PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
             case "CURRENT":
