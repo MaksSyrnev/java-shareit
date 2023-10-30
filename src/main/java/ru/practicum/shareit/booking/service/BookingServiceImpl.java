@@ -146,7 +146,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getBookingByOwner(int userId, String state, int from, int size) {
         if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
+            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
         }
         User user = userService.getUserById(userId);
         PageRequest page = of(from > 0 ? from / size : 0, size);

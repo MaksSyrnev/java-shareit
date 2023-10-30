@@ -103,11 +103,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoWithBooking getItemById(int userId, int itemId) {
-        Item item = repository.findById(itemId).orElseThrow(
-                () -> new IncorrectItemIdExeption("неверный id вещи")
-        );
-        ItemDtoWithBooking itemDto = toItemDtoWithBooking(item);
-        if (item.getUser().getId() == userId) {
+        Optional<Item> item = repository.findById(itemId);
+        if (item.isEmpty()) {
+            throw new IncorrectItemIdExeption("неверный id вещи");
+        }
+        ItemDtoWithBooking itemDto = toItemDtoWithBooking(item.get());
+        if (item.get().getUser().getId() == userId) {
             fillItemBooking(itemDto);
         }
         List<Comment> comments = commentsReopository.findAllByItemId(itemId);
@@ -123,7 +124,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDtoWithBooking> getAllItemsByUser(int userId, int from, int size) {
         if ((from < 0) || (size < 0)) {
-            throw new IncorrectItemDataExeption("некорректное значение парметров пагинации");
+            throw new IncorrectItemDataExeption("некорректное значение параметров пагинации");
         }
         User user = userService.getUserById(userId);
         PageRequest page = of(from > 0 ? from / size : 0, size);
@@ -167,7 +168,7 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectItemIdExeption("неверный id вещи");
         }
         if (item.get().getUser().getId() == userId) {
-            throw new IncorrectItemDataExeption("неверный id пользователя, владелеу не может добавлять комментарий");
+            throw new IncorrectItemDataExeption("неверный id пользователя, владелец не может добавлять комментарий");
         }
         List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerIdAndStatus(itemId, userId,
                 BookingStatus.APPROVED)
