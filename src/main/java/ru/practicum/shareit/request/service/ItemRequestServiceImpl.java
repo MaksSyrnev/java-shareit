@@ -18,6 +18,7 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,17 +51,19 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestWithItemsDto getRequestById(int userId, int requestId) {
         User user = userService.getUserById(userId);
-        final ItemRequest iRequest = reopository.findById(requestId).orElseThrow(
-                () -> new IncorrectIdRequestExeption("Запрос с таким id не найден"));
+        Optional<ItemRequest> iRequest = reopository.findById(requestId);
+        if (iRequest.isEmpty()) {
+            throw new IncorrectIdRequestExeption("Запрос с таким id не найден");
+        }
         final List<Item> findItems = itemRepository.findByRequestId(requestId);
         if (findItems.isEmpty()) {
-            return makeRequestWithItemsDto(iRequest, Collections.emptyList());
+            return makeRequestWithItemsDto(iRequest.get(), Collections.emptyList());
         }
         List<ItemDto> items = findItems.stream()
                 .map(item -> toItemDto(item))
                 .collect(Collectors.toList());
 
-        return makeRequestWithItemsDto(iRequest, items);
+        return makeRequestWithItemsDto(iRequest.get(), items);
     }
 
     @Override
@@ -87,7 +90,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestWithItemsDto> getAllRequest(int userId, int from, int size) {
         User user = userService.getUserById(userId);
         if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение парметров пагинации");
+            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
         }
         PageRequest page = of(from > 0 ? from / size : 0, size);
         final Map<Integer, ItemRequest> requestMap = reopository.findAllByRequestorIdNot(userId, page).getContent()

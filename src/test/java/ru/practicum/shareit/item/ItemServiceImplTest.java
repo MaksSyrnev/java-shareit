@@ -20,7 +20,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemServiceImpl;
 import ru.practicum.shareit.item.storage.CommentReopository;
 import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.model.User;
@@ -367,11 +366,5 @@ public class ItemServiceImplTest {
         booking.setStatus(status);
         return booking;
     }
-
-    /*
-
-    ShortCommentDto addCommentToItem(int userId, int itemId, CommentDto commentDto)
-
-     */
 
 }
