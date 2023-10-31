@@ -35,7 +35,7 @@ public class ItemRequestController {
 
     @PostMapping
     public ItemRequest addNewRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
-                                        @Valid @RequestBody ItemRequestDto itemRequestDto ) {
+                                        @Valid @RequestBody ItemRequestDto itemRequestDto) {
         int userId = Integer.parseInt(headerUserId);
         return service.addNewItemRequest(userId, itemRequestDto);
     }

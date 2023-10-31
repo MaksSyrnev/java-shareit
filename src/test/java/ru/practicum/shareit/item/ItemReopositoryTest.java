@@ -14,7 +14,6 @@ import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class ItemReopositoryTest {
         em.persist(entity);
         log.info(" user - {}",entity);
 
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
 
         List<Item> sourceItems = List.of(
                 makeItem("One", "text", entity, Boolean.TRUE),

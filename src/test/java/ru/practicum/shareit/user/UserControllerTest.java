@@ -90,7 +90,7 @@ public class UserControllerTest {
         User user = makeUser(1, "Mi6a", "mi6a@mail.ru");
         UserDto userDto = toUserDto(user);
 
-        when(userService.updateUser( 1, userDto))
+        when(userService.updateUser(1, userDto))
                 .thenReturn(user);
 
         mvc.perform(patch("/users/{id}", 1)

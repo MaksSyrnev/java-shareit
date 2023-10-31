@@ -7,8 +7,6 @@ import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import ru.practicum.shareit.booking.exeptions.IncorrectStatusBookingExeption;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -134,7 +132,7 @@ public class ItemReqestServiceImplTest {
         User user = makeUser(1, "Jon", "jon@dow.com");
         User userJoe = makeUser(2, "Jon", "jon@dow.com");
         ItemRequest request = makeItemRequest(1, "text", userJoe, LocalDateTime.now());
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
         List<ItemRequest> requests = new ArrayList<>();
         requests.add(request);
         Page<ItemRequest> pagedResponse = new PageImpl(requests);

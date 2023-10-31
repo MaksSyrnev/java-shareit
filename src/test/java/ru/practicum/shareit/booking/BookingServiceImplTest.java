@@ -280,7 +280,7 @@ public class BookingServiceImplTest {
     @DisplayName("GetBookingByState - Вызов корректного метода реопозитория")
     void testGetBookingByStateCallReopository() {
         User booker = makeUser(1, "Jon", "jon@dow.com");
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
         List<Booking> bookings = new ArrayList<>();
         Page<Booking> pagedResponse = new PageImpl(bookings);
 
@@ -332,7 +332,7 @@ public class BookingServiceImplTest {
     @DisplayName("GetBookingByOwner - Вызов корректного метода реопозитория")
     void testGetBookingByOwnerCallReopository() {
         User owner = makeUser(1, "Jon", "jon@dow.com");
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
         List<Booking> bookings = new ArrayList<>();
         Page<Booking> pagedResponse = new PageImpl(bookings);
 

@@ -199,7 +199,7 @@ public class ItemServiceImplTest {
     @DisplayName("GetAllItemsByUser - просмотр всех вещей собственником, обращение к нужному методу реопозитория")
     void testGetAllItemsByUser() {
         User user = makeUser(1, "Jon", "jon@dow.com");
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
         List<Item> items = new ArrayList<>();
         Page<Item> pagedResponse = new PageImpl(items);
 
@@ -233,7 +233,7 @@ public class ItemServiceImplTest {
     @Test
     @DisplayName("SearchItem - вызов правильного метода реопозитория")
     void testSearchItem() {
-        PageRequest page = of( 0, 10);
+        PageRequest page = of(0, 10);
         List<Item> items = new ArrayList<>();
         Page<Item> pagedResponse = new PageImpl(items);
         Mockito

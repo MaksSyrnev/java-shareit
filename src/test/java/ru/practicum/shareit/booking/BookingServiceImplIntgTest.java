@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
@@ -92,7 +91,7 @@ public class BookingServiceImplIntgTest {
         return item;
     }
 
-    private Booking makeBooking( LocalDateTime start, LocalDateTime end, Item item, User booker,
+    private Booking makeBooking(LocalDateTime start, LocalDateTime end, Item item, User booker,
                                 BookingStatus status) {
         Booking booking = new Booking();
         booking.setStart(start);
