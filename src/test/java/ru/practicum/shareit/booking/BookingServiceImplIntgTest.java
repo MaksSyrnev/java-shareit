@@ -72,6 +72,18 @@ public class BookingServiceImplIntgTest {
                     hasProperty("item", equalTo(boking.getItem()))
             )));
         }
+
+        List<Booking> targetCurrentBookings = service.getBookingByState(booker.getId(), "CURRENT", 0, 10);
+        assertThat(targetCurrentBookings, hasSize(0));
+
+        List<Booking> targetPastBookings = service.getBookingByState(booker.getId(), "PAST", 0, 10);
+        assertThat(targetPastBookings, hasSize(0));
+
+        List<Booking> targetWaitingBookings = service.getBookingByState(booker.getId(), "WAITING", 0, 10);
+        assertThat(targetWaitingBookings, hasSize(1));
+
+        List<Booking> targetRejBookings = service.getBookingByState(booker.getId(), "REJECTED", 0, 10);
+        assertThat(targetRejBookings, hasSize(0));
     }
 
 
