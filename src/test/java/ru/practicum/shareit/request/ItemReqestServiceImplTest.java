@@ -215,14 +215,4 @@ public class ItemReqestServiceImplTest {
         item.setRequest(request);
         return item;
     }
-
-    /*
-    +ItemRequest addNewItemRequest(int userId, ItemRequestDto itemRequestDto)
-    +ItemRequestWithItemsDto getRequestById(int userId, int requestId)
-    List<ItemRequestWithItemsDto> getAllUserRequest(int userId)
-    List<ItemRequestWithItemsDto> getAllRequest(int userId, int from, int size)
-
-    ItemRequestDto itemRequestDto
-
-     */
 }
