@@ -15,6 +15,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.ShortCommentDto;
+import ru.practicum.shareit.item.exeption.IncorrectDataCommentExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemDataExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
@@ -216,6 +217,30 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(shortCommentDto.getId())));
+    }
+
+    @Test
+    void addBlankCommentToItem() throws Exception {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setText(" ");
+        ShortCommentDto shortCommentDto = new ShortCommentDto();
+        shortCommentDto.setId(1);
+
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка данных",
+                "пустой комментарий");
+
+        when(service.addCommentToItem(1, 1, commentDto))
+                .thenThrow(new IncorrectDataCommentExeption("пустой комментарий"));
+
+        mvc.perform(post("/items/{itemId}/comment", "1")
+                        .content(mapper.writeValueAsString(commentDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
     }
 
     private ItemDto makeItemDto(String name, String description, Boolean available) {

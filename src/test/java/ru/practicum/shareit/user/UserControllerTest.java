@@ -8,9 +8,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.user.controller.UserController;
 import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exeption.IncorrectUserIdException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -67,6 +69,21 @@ public class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect((ResultMatcher) jsonPath("$.id", is(user.getId())));
+    }
+
+    @Test
+    void getUserByIdNotFound() throws Exception {
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка данных",
+                "Пользователь с таким id не найден");
+
+        when(userService.getUserById(anyInt()))
+                .thenThrow(new IncorrectUserIdException("Пользователь с таким id не найден"));
+
+        mvc.perform(get("/users/{id}",1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect((ResultMatcher) jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect((ResultMatcher) jsonPath("$.description", is(errorResponse.getDescription())));
     }
 
     @Test

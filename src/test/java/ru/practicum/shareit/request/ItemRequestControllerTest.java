@@ -7,9 +7,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.request.controller.ItemRequestController;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
+import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
+import ru.practicum.shareit.request.exeption.IncorrectIdRequestExeption;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
@@ -87,6 +91,22 @@ public class ItemRequestControllerTest {
     }
 
     @Test
+    void getAllRequestIncorrectPage() throws Exception {
+        ErrorResponse errorResponse = new ErrorResponse("Запрос не содержит описания",
+                "некорректное значение параметров пагинации");
+
+        when(requestService.getAllRequest(anyInt(), anyInt(), anyInt()))
+                .thenThrow(new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации"));
+
+        mvc.perform(get("/requests/all?from={from}&size={size}", "0", "-20")
+                        .header("X-Sharer-User-Id", "1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect((ResultMatcher) jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect((ResultMatcher) jsonPath("$.description", is(errorResponse.getDescription())));
+    }
+
+    @Test
     void getRequestById() throws Exception {
         ItemRequestWithItemsDto request = new ItemRequestWithItemsDto();
         request.setId(1);
@@ -99,6 +119,22 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(request.getId())));
+    }
+
+    @Test
+    void getRequestByIdNotFound() throws Exception {
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка поиска запроса",
+                "Запрос с таким id не найден");
+
+        when(requestService.getRequestById(anyInt(), anyInt()))
+                .thenThrow(new IncorrectIdRequestExeption("Запрос с таким id не найден"));
+
+        mvc.perform(get("/requests/{id}", "0")
+                        .header("X-Sharer-User-Id", "1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect((ResultMatcher) jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect((ResultMatcher) jsonPath("$.description", is(errorResponse.getDescription())));
     }
 
     private ItemRequestDto makeItemRequestDto(String description, User requestor, LocalDateTime created) {
