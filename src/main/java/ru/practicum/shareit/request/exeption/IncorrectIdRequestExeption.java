@@ -4,5 +4,4 @@ public class IncorrectIdRequestExeption extends RuntimeException {
     public IncorrectIdRequestExeption(String message) {
         super(message);
     }
-
 }

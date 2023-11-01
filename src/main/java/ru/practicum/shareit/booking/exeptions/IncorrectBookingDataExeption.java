@@ -4,5 +4,4 @@ public class IncorrectBookingDataExeption extends RuntimeException {
     public IncorrectBookingDataExeption(String message) {
         super(message);
     }
-
 }

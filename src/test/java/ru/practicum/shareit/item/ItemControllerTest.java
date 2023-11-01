@@ -243,6 +243,30 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
     }
 
+    @Test
+    void addCommentToItemNotFound() throws Exception {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setText("text");
+        ShortCommentDto shortCommentDto = new ShortCommentDto();
+        shortCommentDto.setId(1);
+
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка данных",
+                "неверный id вещи");
+
+        when(service.addCommentToItem(1, 1, commentDto))
+                .thenThrow(new IncorrectItemIdExeption("неверный id вещи"));
+
+        mvc.perform(post("/items/{itemId}/comment", "1")
+                        .content(mapper.writeValueAsString(commentDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
+    }
+
     private ItemDto makeItemDto(String name, String description, Boolean available) {
         ItemDto itemDto = new ItemDto();
         itemDto.setName(name);

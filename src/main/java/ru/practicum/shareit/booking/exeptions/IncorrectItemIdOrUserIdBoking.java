@@ -4,5 +4,4 @@ public class IncorrectItemIdOrUserIdBoking extends RuntimeException {
     public IncorrectItemIdOrUserIdBoking(String message) {
         super(message);
     }
-
 }

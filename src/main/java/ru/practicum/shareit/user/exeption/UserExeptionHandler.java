@@ -11,16 +11,6 @@ import ru.practicum.shareit.user.controller.UserController;
 @Slf4j
 @RestControllerAdvice(assignableTypes = {UserController.class})
 public class UserExeptionHandler {
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleIncorrectEmailUserError(final IncorrectUserEmail e) {
-        log.error("неверная почта: - '{}'", e.getMessage());
-        return new ErrorResponse(
-                "Ошибка данных", e.getMessage()
-        );
-    }
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleIncorrectUserIdError(final IncorrectUserIdException e) {

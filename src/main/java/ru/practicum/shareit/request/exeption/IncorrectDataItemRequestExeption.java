@@ -4,5 +4,4 @@ public class IncorrectDataItemRequestExeption extends RuntimeException {
     public IncorrectDataItemRequestExeption(String message) {
         super(message);
     }
-
 }

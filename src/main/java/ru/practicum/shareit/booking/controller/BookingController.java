@@ -74,5 +74,4 @@ public class BookingController {
         int userId = Integer.parseInt(headerUserId);
         return bookingService.getBookingByOwner(userId, state, from, size);
     }
-
 }

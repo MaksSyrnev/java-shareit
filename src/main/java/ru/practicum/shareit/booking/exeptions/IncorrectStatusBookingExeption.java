@@ -4,5 +4,4 @@ public class IncorrectStatusBookingExeption extends RuntimeException {
     public IncorrectStatusBookingExeption(String message) {
         super(message);
     }
-
 }

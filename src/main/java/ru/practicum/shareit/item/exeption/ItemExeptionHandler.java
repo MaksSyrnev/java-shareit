@@ -39,15 +39,6 @@ public class ItemExeptionHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowableError(final Throwable e) {
-        log.error("ошибка: - '{}'", e.getMessage());
-        return new ErrorResponse(
-                "Ошибка данных", e.getMessage()
-        );
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public  ErrorResponse handleIncorrectDataComment(final IncorrectDataCommentExeption e) {
         log.error("валидация данных : - '{}'", e.getMessage());
