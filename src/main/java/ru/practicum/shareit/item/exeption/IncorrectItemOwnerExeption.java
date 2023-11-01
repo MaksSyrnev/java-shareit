@@ -6,11 +6,4 @@ public class IncorrectItemOwnerExeption extends RuntimeException {
         super(message);
     }
 
-    public IncorrectItemOwnerExeption(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectItemOwnerExeption(final Throwable cause) {
-        super(cause);
-    }
 }

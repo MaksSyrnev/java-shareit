@@ -16,7 +16,7 @@ public class ItemExeptionHandler {
     public ErrorResponse handleValidationError(final IncorrectItemDataExeption e) {
         log.error("валидация данных: - '{}'", e.getMessage());
         return new ErrorResponse(
-                "Неполные данные для солздания вещи", e.getMessage()
+                "Неполные данные для создания вещи", e.getMessage()
         );
     }
 

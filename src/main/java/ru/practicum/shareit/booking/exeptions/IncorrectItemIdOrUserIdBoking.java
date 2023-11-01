@@ -5,11 +5,4 @@ public class IncorrectItemIdOrUserIdBoking extends RuntimeException {
         super(message);
     }
 
-    public IncorrectItemIdOrUserIdBoking(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectItemIdOrUserIdBoking(final Throwable cause) {
-        super(cause);
-    }
 }

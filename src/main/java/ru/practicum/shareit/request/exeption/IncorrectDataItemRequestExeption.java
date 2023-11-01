@@ -5,11 +5,4 @@ public class IncorrectDataItemRequestExeption extends RuntimeException {
         super(message);
     }
 
-    public IncorrectDataItemRequestExeption(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectDataItemRequestExeption(final Throwable cause) {
-        super(cause);
-    }
 }

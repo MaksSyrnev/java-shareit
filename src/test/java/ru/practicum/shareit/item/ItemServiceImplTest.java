@@ -198,10 +198,11 @@ public class ItemServiceImplTest {
         ArrayList<Comment> comments = new ArrayList<>();
         Booking lastBooking = makeBooking(1, LocalDateTime.now().minusDays(3),
                 LocalDateTime.now().minusDays(2), item, booker, BookingStatus.APPROVED);
-
-        Booking nextBooking = makeBooking(3, LocalDateTime.now().plusDays(1),
-                LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED);
-        List<Booking> bookings = List.of(lastBooking, nextBooking);
+        Booking nextBooking = makeBooking(3, LocalDateTime.now().plusDays(2),
+                LocalDateTime.now().plusDays(3), item, booker, BookingStatus.APPROVED);
+        Booking middleBooking = makeBooking(13, LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().plusDays(1), item, booker, BookingStatus.APPROVED);
+        List<Booking> bookings = List.of(lastBooking, nextBooking, middleBooking);
 
         Mockito
                 .when(mockRepository.findById(Mockito.anyInt()))

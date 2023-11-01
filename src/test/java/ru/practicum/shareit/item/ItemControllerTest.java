@@ -7,16 +7,24 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.booking.dto.ShortBookingDto;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.ShortCommentDto;
+import ru.practicum.shareit.item.exeption.IncorrectItemDataExeption;
+import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
+import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.booking.dto.BookingMapper.toShortBookingDto;
 
 @WebMvcTest(controllers = ItemController.class)
 public class ItemControllerTest {
@@ -60,6 +69,26 @@ public class ItemControllerTest {
     }
 
     @Test
+    void addItemBlankName() throws Exception {
+        ItemDto itemDto = makeItemDto(" ", "Text text", true);
+        ErrorResponse errorResponse = new ErrorResponse("Неполные данные для создания вещи",
+                "недостаточно данных");
+
+        when(service.addItem(1, itemDto))
+                .thenThrow(new IncorrectItemDataExeption("недостаточно данных"));
+
+        mvc.perform(post("/items")
+                        .content(mapper.writeValueAsString(itemDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
+    }
+
+    @Test
     void updateItem() throws Exception {
         ItemDto itemDto = makeItemDto("Text", "Text text", true);
         User owner = makeUser(2, "Jony", "jony@dow.com");
@@ -80,6 +109,27 @@ public class ItemControllerTest {
     }
 
     @Test
+    void updateItemNotOwner() throws Exception {
+        ItemDto itemDto = makeItemDto("Text", "Text text", true);
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка данных",
+                "в доступе отказано, чужая вещь");
+
+        when(service.updateItem(1, itemDto, 1))
+                .thenThrow(new IncorrectItemOwnerExeption("в доступе отказано, чужая вещь"));
+
+        mvc.perform(patch("/items/{itemId}", "1")
+                        .content(mapper.writeValueAsString(itemDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
+    }
+
+
+    @Test
     void getItems() throws Exception {
         List<ItemDtoWithBooking> items = new ArrayList<>();
 
@@ -97,6 +147,15 @@ public class ItemControllerTest {
     void getItemById() throws Exception {
         ItemDtoWithBooking itemDtoWithBooking = new ItemDtoWithBooking();
         itemDtoWithBooking.setId(1);
+        User owner = makeUser(1, "Jon", "jon@dow.com");
+        User booker = makeUser(2, "Jony", "jony@dow.com");
+        Item item = makeItem(1,"Text", "Text text", owner, true);
+        Booking lastBooking = makeBooking(1, LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2), item, booker, BookingStatus.APPROVED);
+        Booking nextBooking = makeBooking(3, LocalDateTime.now().plusDays(2),
+                LocalDateTime.now().plusDays(3), item, booker, BookingStatus.APPROVED);
+        itemDtoWithBooking.setNextBooking(toShortBookingDto(nextBooking));
+        itemDtoWithBooking.setLastBooking(toShortBookingDto(lastBooking));
 
         when(service.getItemById(anyInt(), anyInt()))
                 .thenReturn(itemDtoWithBooking);
@@ -105,7 +164,25 @@ public class ItemControllerTest {
                         .header("X-Sharer-User-Id", "1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(itemDtoWithBooking.getId())));
+                .andExpect(jsonPath("$.id", is(itemDtoWithBooking.getId())))
+                .andExpect(jsonPath("$.nextBooking.id", is(itemDtoWithBooking.getNextBooking().getId())))
+                .andExpect(jsonPath("$.lastBooking.id", is(itemDtoWithBooking.getLastBooking().getId())));
+    }
+
+    @Test
+    void getItemByIdNotFound() throws Exception {
+        ErrorResponse errorResponse = new ErrorResponse("Ошибка данных",
+                "неверный id вещи");
+
+        when(service.getItemById(anyInt(), anyInt()))
+                .thenThrow(new IncorrectItemIdExeption("неверный id вещи"));
+
+        mvc.perform(get("/items/{itemId}", "1")
+                        .header("X-Sharer-User-Id", "1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error", is(errorResponse.getError())))
+                .andExpect(jsonPath("$.description", is(errorResponse.getDescription())));
     }
 
     @Test
@@ -166,5 +243,17 @@ public class ItemControllerTest {
         user.setName(name);
         user.setEmail(email);
         return user;
+    }
+
+    private Booking makeBooking(int id, LocalDateTime start, LocalDateTime end, Item item, User booker,
+                                BookingStatus status) {
+        Booking booking = new Booking();
+        booking.setId(id);
+        booking.setStart(start);
+        booking.setEnd(end);
+        booking.setItem(item);
+        booking.setBooker(booker);
+        booking.setStatus(status);
+        return booking;
     }
 }

@@ -5,11 +5,4 @@ public class IncorrectStatusBookingExeption extends RuntimeException {
         super(message);
     }
 
-    public IncorrectStatusBookingExeption(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectStatusBookingExeption(final Throwable cause) {
-        super(cause);
-    }
 }

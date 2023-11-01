@@ -6,11 +6,4 @@ public class IncorrectItemIdExeption extends RuntimeException {
         super(message);
     }
 
-    public IncorrectItemIdExeption(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectItemIdExeption(final Throwable cause) {
-        super(cause);
-    }
 }

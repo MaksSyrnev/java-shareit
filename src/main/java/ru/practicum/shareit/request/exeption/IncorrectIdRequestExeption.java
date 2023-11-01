@@ -5,11 +5,4 @@ public class IncorrectIdRequestExeption extends RuntimeException {
         super(message);
     }
 
-    public IncorrectIdRequestExeption(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public IncorrectIdRequestExeption(final Throwable cause) {
-        super(cause);
-    }
 }
