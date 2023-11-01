@@ -34,15 +34,15 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequest addNewRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
+    public ItemRequest addNewRequest(@RequestHeader("X-Sharer-User-Id") int headerUserId,
                                         @Valid @RequestBody ItemRequestDto itemRequestDto) {
-        int userId = Integer.parseInt(headerUserId);
+        int userId = headerUserId;
         return service.addNewItemRequest(userId, itemRequestDto);
     }
 
     @GetMapping
-    public List<ItemRequestWithItemsDto> getAllUserRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId) {
-        int userId = Integer.parseInt(headerUserId);
+    public List<ItemRequestWithItemsDto> getAllUserRequest(@RequestHeader("X-Sharer-User-Id") int headerUserId) {
+        int userId = headerUserId;
         return service.getAllUserRequest(userId);
     }
 
