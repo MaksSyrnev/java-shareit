@@ -15,10 +15,6 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.notNullValue;
-
 @Slf4j
 @JsonTest
 public class ItemDtoWithBookingJsonTest {
