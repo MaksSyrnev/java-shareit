@@ -15,6 +15,10 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 @Slf4j
 @JsonTest
 public class ItemDtoWithBookingJsonTest {
@@ -38,6 +42,8 @@ public class ItemDtoWithBookingJsonTest {
 
         JsonContent<ItemDtoWithBooking> result = json.write(itemDtoWithBooking);
         log.info("result{}", result);
+
+        result.assertThat().extractingJsonPathNumberValue("$.user.id", equalTo(owner.getId()));
     }
 
     private User makeUser(int id, String name, String email) {
