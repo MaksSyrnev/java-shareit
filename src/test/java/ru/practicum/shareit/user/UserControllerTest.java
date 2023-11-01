@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -86,6 +87,22 @@ public class UserControllerTest {
     }
 
     @Test
+    void addUserNonEmail() throws Exception {
+        User user = makeUser(1, "Mi6a", "mi6a@mail.ru");
+        NewUserDto userDto = makeNewUserDto("Mi6a", "mi6aru");
+
+        when(userService.addUser(userDto))
+                .thenReturn(user);
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void updateUser() throws Exception {
         User user = makeUser(1, "Mi6a", "mi6a@mail.ru");
         UserDto userDto = toUserDto(user);
@@ -100,6 +117,13 @@ public class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(user.getId())));
+    }
+
+    @Test
+    void deleteUser() throws Exception {
+        mvc.perform(delete("/users/{id}", 1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     private User makeUser(int id, String name, String email) {

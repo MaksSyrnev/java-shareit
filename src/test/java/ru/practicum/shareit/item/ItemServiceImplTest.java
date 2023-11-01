@@ -14,6 +14,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.exeption.IncorrectDataCommentExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemDataExeption;
+import ru.practicum.shareit.item.exeption.IncorrectItemIdExeption;
 import ru.practicum.shareit.item.exeption.IncorrectItemOwnerExeption;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -25,6 +26,8 @@ import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,10 +148,13 @@ public class ItemServiceImplTest {
 
     @Test
     @DisplayName("GetItemById - не владелец вещи, обращения к реопозиториям Item и Comment, к букингу нет")
-    void testGetItemById() {
+    void testGetItemByIdNotOwner() {
         User owner = makeUser(1, "Jon", "jon@dow.com");
+        User bill = makeUser(2, "Bill", "bill@dow.com");
         Item item = makeItem(1, "Вещь", "Обалденная", owner, true, null);
         ArrayList<Comment> comments = new ArrayList<>();
+        Comment commentOne = makeComent(1, "text", item, bill, LocalDateTime.now());
+        comments.add(commentOne);
 
         Mockito
                 .when(mockRepository.findById(Mockito.anyInt()))
@@ -170,12 +176,34 @@ public class ItemServiceImplTest {
     }
 
     @Test
+    @DisplayName("GetItemById - вещь не найдена")
+    void testGetItemByIdNotFound() {
+        Mockito
+                .when(mockRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.empty());
+
+        final IncorrectItemIdExeption ex = assertThrows(
+                IncorrectItemIdExeption.class,
+                () -> itemService.getItemById(2, 1)
+        );
+
+        Assertions.assertEquals(ex.getMessage(), "неверный id вещи",
+                "Ошибка не верная или не произошла");
+    }
+
+    @Test
     @DisplayName("GetItemById - просмотр вещи собственником, обращение к букингу")
-    void testGetItemByIdNotOwner() {
+    void testGetItemById() {
         User owner = makeUser(1, "Jon", "jon@dow.com");
+        User booker = makeUser(2, "Jony", "jony@dow.com");
         Item item = makeItem(1, "Вещь", "Обалденная", owner, true, null);
         ArrayList<Comment> comments = new ArrayList<>();
-        List<Booking> bookings = new ArrayList<>();
+        Booking lastBooking = makeBooking(1, LocalDateTime.now().minusDays(3),
+                LocalDateTime.now().minusDays(2), item, booker, BookingStatus.APPROVED);
+
+        Booking nextBooking = makeBooking(3, LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED);
+        List<Booking> bookings = List.of(lastBooking, nextBooking);
 
         Mockito
                 .when(mockRepository.findById(Mockito.anyInt()))
@@ -367,4 +395,13 @@ public class ItemServiceImplTest {
         return booking;
     }
 
+    private Comment makeComent(int id, String text, Item item, User author, LocalDateTime created) {
+        Comment comment = new Comment();
+        comment.setId(id);
+        comment.setText(text);
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(created);
+        return comment;
+    }
 }

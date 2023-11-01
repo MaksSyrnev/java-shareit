@@ -189,6 +189,25 @@ public class BookingServiceImplTest {
     }
 
     @Test
+    @DisplayName("ApproveBooking - измененее статуса на Отклонен ")
+    void testApproveBookingSetStatusReject() {
+        User booker = makeUser(1, "Jon", "jon@dow.com");
+        User owner = makeUser(2, "Joe", "joe@dow.com");
+        Item item = makeItem(56, "name", "description", owner,
+                true, null);
+        Booking booking = makeBooking(1, LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2), item, booker, BookingStatus.WAITING);
+
+        Mockito
+                .when(mockRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.approveBooking(2,  1, false);
+
+        Assertions.assertEquals(booking.getStatus(), BookingStatus.REJECTED, "Статус не изменился на отклонен");
+    }
+
+    @Test
     @DisplayName("ApproveBooking - не владелец вещи")
     void testApproveBookingNotOwner() {
         User booker = makeUser(1, "Jon", "jon@dow.com");
@@ -231,6 +250,21 @@ public class BookingServiceImplTest {
 
         Assertions.assertEquals(ex.getMessage(), "Бронирование уже подтверждено",
                 "Ошибка не верная или не произошла");
+    }
+
+    @Test
+    @DisplayName("ApproveBooking - букинг не найден")
+    void testApproveBookingNotFound() {
+        Mockito
+                .when(mockRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.empty());
+
+        final IncorrectItemIdOrUserIdBoking ex = assertThrows(
+                IncorrectItemIdOrUserIdBoking.class,
+                () -> bookingService.approveBooking(1,  1, true)
+        );
+
+        Assertions.assertEquals(ex.getMessage(), "Букинг с таким id не найден", "Ошибка не верная или не произошла");
     }
 
     @Test

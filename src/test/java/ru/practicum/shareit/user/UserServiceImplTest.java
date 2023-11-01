@@ -155,6 +155,26 @@ public class UserServiceImplTest {
         Assertions.assertEquals(user.getName(), "Sena", "у сущности не обновилось имя из dto");
     }
 
+    @Test
+    @DisplayName("DeleteUserById - удаление пользователя")
+    void testDeleteUserById() {
+        User user = makeUser(1, "Jon Sena", "jon-sena@java.com");
+        UserDto userDto = new UserDto();
+        userDto.setName("Sena");
+
+        Mockito
+                .when(mockRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
+
+        userService.deleteUserById(1);
+
+        Mockito.verify(mockRepository, Mockito.times(1))
+                .findById(1);
+
+        Mockito.verify(mockRepository, Mockito.times(1))
+                .delete(Mockito.any());
+    }
+
     private User makeUser(int id, String name, String email) {
         User user = new User();
         user.setId(id);
