@@ -59,12 +59,16 @@ public class BookingServiceImpl implements BookingService {
         } else if (!item.isAvailable()) {
             throw new IncorrectBookingDataExeption("Вещь недоступна к бронированию");
         }
-//        List<Booking> bookingsItem = repository.findAllByItemIdOrderByStartDesc(item.getId());
-//        bookingsItem.stream()
-//                .filter(b -> b.getStatus() != BookingStatus.REJECTED)
-//                .filter(b -> {(b.getStart().isAfter(bookingDto.getStart()) ||
-//                    (b.getStart().isBefore()})
-//
+        List<Booking> bookingsItem = repository.findAllByItemIdOrderByStartDesc(item.getId());
+        List<Booking> crossBookings = bookingsItem.stream()
+                .filter(b -> b.getStatus() != BookingStatus.REJECTED)
+                .filter(b -> (
+                        (bookingDto.getStart().isAfter(b.getStart()) && (bookingDto.getStart().isBefore(b.getEnd()))) ||
+                        ((bookingDto.getEnd().isAfter(b.getStart())) && (bookingDto.getEnd().isBefore(b.getEnd())))))
+                .collect(Collectors.toList());
+        if (!crossBookings.isEmpty()) {
+            throw new IncorrectBookingDataExeption("На указанный период уже есть броннирование");
+        }
         Booking newBooking = BookingMapper.toBooking(bookingDto, booker.get(), item);
         return repository.save(newBooking);
     }

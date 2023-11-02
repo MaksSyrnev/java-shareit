@@ -88,6 +88,57 @@ public class BookingServiceImplIntgTest {
         assertThat(targetRejBookings, hasSize(0));
     }
 
+    @Test
+    @DisplayName("getBookingByOwner - интеграция")
+    void getBookingByOwner() {
+        NewUserDto userOne = makeNewUserDto("Миша", "mi6a@mail.ru");
+        NewUserDto userTwo = makeNewUserDto("Маша", "ma6a@mail.ru");
+        User owner = UserMapper.toUser(userOne);
+        User booker = UserMapper.toUser(userTwo);
+        em.persist(owner);
+        em.persist(booker);
+        log.info(" user - {}", owner);
+        log.info(" user - {}", booker);
+
+        Item itemOne = makeItem("One", "text", owner, Boolean.TRUE);
+        em.persist(itemOne);
+
+        List<Booking> bokings = List.of(
+                makeBooking(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2),
+                        itemOne, booker, BookingStatus.WAITING),
+                makeBooking(LocalDateTime.now().plusDays(4), LocalDateTime.now().plusDays(5),
+                        itemOne, booker, BookingStatus.APPROVED)
+        );
+
+        for (Booking boking : bokings) {
+            em.persist(boking);
+        }
+        em.flush();
+
+        List<Booking> targetBookings = service.getBookingByOwner(owner.getId(), "FUTURE", 0, 10);
+
+        assertThat(targetBookings, hasSize(bokings.size()));
+        for (Booking boking : bokings) {
+            assertThat(targetBookings, hasItem(allOf(
+                    hasProperty("id", notNullValue()),
+                    hasProperty("start", equalTo(boking.getStart())),
+                    hasProperty("item", equalTo(boking.getItem()))
+            )));
+        }
+
+        List<Booking> targetCurrentBookings = service.getBookingByOwner(owner.getId(), "CURRENT", 0, 10);
+        assertThat(targetCurrentBookings, hasSize(0));
+
+        List<Booking> targetPastBookings = service.getBookingByOwner(owner.getId(), "PAST", 0, 10);
+        assertThat(targetPastBookings, hasSize(0));
+
+        List<Booking> targetWaitingBookings = service.getBookingByOwner(owner.getId(), "WAITING", 0, 10);
+        assertThat(targetWaitingBookings, hasSize(1));
+
+        List<Booking> targetRejBookings = service.getBookingByOwner(owner.getId(), "REJECTED", 0, 10);
+        assertThat(targetRejBookings, hasSize(0));
+    }
+
 
     private NewUserDto makeNewUserDto(String name, String email) {
         NewUserDto newUser = new NewUserDto();

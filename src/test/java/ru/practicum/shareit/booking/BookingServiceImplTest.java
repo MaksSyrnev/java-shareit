@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.exeptions.IncorrectBookingDataExeption;
 import ru.practicum.shareit.booking.exeptions.IncorrectItemIdOrUserIdBoking;
 import ru.practicum.shareit.booking.exeptions.IncorrectStatusBookingExeption;
@@ -147,6 +148,43 @@ public class BookingServiceImplTest {
 
         assertEquals(ex.getMessage(), "Вещь недоступна к бронированию",
                 "Ошибка при валидации доступности бронирования вещи отсутствует");
+    }
+
+    @Test
+    @DisplayName("AddNewBooking - с пересечением по другому бронированию")
+    void testAddNewBookingWithCrossDateBooking() {
+        BookingDto bookingDtoIncoming = makeBookingDto(1, LocalDateTime.now().plusDays(1),
+                (LocalDateTime.now().plusDays(2)));
+        User booker = makeUser(1, "Jon", "jon@dow.com");
+        User owner = makeUser(2, "Joe", "joe@dow.com");
+        Item mockItem = makeItem(56, "name", "description", owner,
+                true, null);
+        BookingDto crossBookingDto = makeBookingDto(1, LocalDateTime.now().minusDays(1),
+                (LocalDateTime.now().plusDays(2)));
+        crossBookingDto.setStatus(BookingStatus.APPROVED);
+        List<Booking> bookingsItem = List.of(
+                BookingMapper.toBooking(crossBookingDto, owner, mockItem)
+        );
+
+        Mockito
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(booker));
+
+        Mockito
+                .when(mockItemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(mockItem));
+
+        Mockito
+                .when(mockRepository.findAllByItemIdOrderByStartDesc(Mockito.anyInt()))
+                .thenReturn(bookingsItem);
+
+        final IncorrectBookingDataExeption ex = assertThrows(
+                IncorrectBookingDataExeption.class,
+                () -> bookingService.addBooking(5, bookingDtoIncoming)
+        );
+
+        assertEquals(ex.getMessage(), "На указанный период уже есть броннирование",
+                "Ошибка при валидации дат отсутсвует");
     }
 
     @Test
