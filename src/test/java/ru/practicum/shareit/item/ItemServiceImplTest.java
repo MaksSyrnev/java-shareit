@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,15 +36,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.data.domain.PageRequest.of;
 
 public class ItemServiceImplTest {
+    private ItemRepository mockRepository;
+    private UserRepository mockUserRepository;
+    private BookingRepository mockBookingRepository;
+    private CommentReopository mockCommentsReopository;
+    private ItemRequestReopository mockRequestReopository;
+    private ItemServiceImpl itemService;
 
-    private final ItemRepository mockRepository = Mockito.mock(ItemRepository.class);
-    private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
-    private final BookingRepository mockBookingRepository = Mockito.mock(BookingRepository.class);
-    private final CommentReopository mockCommentsReopository = Mockito.mock(CommentReopository.class);
-    private final ItemRequestReopository mockRequestReopository = Mockito.mock(ItemRequestReopository.class);
-
-    final ItemServiceImpl itemService = new ItemServiceImpl(mockRepository, mockUserRepository,
-            mockBookingRepository, mockCommentsReopository, mockRequestReopository);
+    @BeforeEach
+    void setUp() {
+        mockRepository = Mockito.mock(ItemRepository.class);
+        mockUserRepository = Mockito.mock(UserRepository.class);
+        mockBookingRepository = Mockito.mock(BookingRepository.class);
+        mockCommentsReopository = Mockito.mock(CommentReopository.class);
+        mockRequestReopository = Mockito.mock(ItemRequestReopository.class);
+        itemService = new ItemServiceImpl(mockRepository, mockUserRepository,
+                mockBookingRepository, mockCommentsReopository, mockRequestReopository);
+    }
 
     @Test
     @DisplayName("AddItem - Вызов метода сохранения реопозитория")

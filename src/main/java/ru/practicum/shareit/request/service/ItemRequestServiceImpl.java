@@ -42,42 +42,33 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequest addNewItemRequest(int userId, ItemRequestDto itemRequestDto) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectIdRequestExeption("Неверный id пользователя");
-        }
+       User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectIdRequestExeption("Неверный id пользователя"));
         ItemRequest itemRequest = toItemRequest(itemRequestDto);
-        itemRequest.setRequestor(user.get());
+        itemRequest.setRequestor(user);
         return reopository.save(itemRequest);
     }
 
     @Override
     public ItemRequestWithItemsDto getRequestById(int userId, int requestId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectIdRequestExeption("Неверный id пользователя");
-        }
-        Optional<ItemRequest> iRequest = reopository.findById(requestId);
-        if (iRequest.isEmpty()) {
-            throw new IncorrectIdRequestExeption("Запрос с таким id не найден");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new IncorrectIdRequestExeption("Неверный id пользователя"));
+        ItemRequest iRequest = reopository.findById(requestId).orElseThrow(
+            () -> new IncorrectIdRequestExeption("Запрос с таким id не найден"));
         final List<Item> findItems = itemRepository.findByRequestId(requestId);
         if (findItems.isEmpty()) {
-            return makeRequestWithItemsDto(iRequest.get(), Collections.emptyList());
+            return makeRequestWithItemsDto(iRequest, Collections.emptyList());
         }
         List<ItemDto> items = findItems.stream()
                 .map(item -> toItemDto(item))
                 .collect(Collectors.toList());
-
-        return makeRequestWithItemsDto(iRequest.get(), items);
+        return makeRequestWithItemsDto(iRequest, items);
     }
 
     @Override
     public List<ItemRequestWithItemsDto> getAllUserRequest(int userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectIdRequestExeption("Неверный id пользователя");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectIdRequestExeption("Неверный id пользователя"));
         Map<Integer, ItemRequest> requestMap = reopository.findAllByRequestorId(userId)
                 .stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
@@ -97,10 +88,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestWithItemsDto> getAllRequest(int userId, int from, int size) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectIdRequestExeption("Неверный id пользователя");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new IncorrectIdRequestExeption("Неверный id пользователя"));
         PageRequest page = of(from > 0 ? from / size : 0, size);
         final Map<Integer, ItemRequest> requestMap = reopository.findAllByRequestorIdNot(userId, page).getContent()
                 .stream()

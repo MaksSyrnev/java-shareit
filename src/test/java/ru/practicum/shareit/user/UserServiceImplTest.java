@@ -2,6 +2,7 @@ package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,9 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 public class UserServiceImplTest {
-    private final UserRepository mockRepository = Mockito.mock(UserRepository.class);
+    private UserRepository mockRepository;
+    private UserServiceImpl userService;
 
-    final UserServiceImpl userService = new UserServiceImpl(mockRepository);
+    @BeforeEach
+    void setUp() {
+        mockRepository = Mockito.mock(UserRepository.class);
+        userService = new UserServiceImpl(mockRepository);
+    }
 
     @Test
     @DisplayName("GetUserById - вызов метода реопозитория")

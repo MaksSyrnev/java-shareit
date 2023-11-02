@@ -71,5 +71,4 @@ public class UserServiceImpl implements UserService {
             repository.delete(user.get());
         }
     }
-
 }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,12 +27,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.data.domain.PageRequest.of;
 
 public class ItemReqestServiceImplTest {
-    private final ItemRequestReopository mockReopository = Mockito.mock(ItemRequestReopository.class);
-    private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
-    private final ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
+    private ItemRequestReopository mockReopository;
+    private UserRepository mockUserRepository;
+    private ItemRepository mockItemRepository;
+    private ItemRequestServiceImpl requestService;
 
-    final ItemRequestServiceImpl requestService = new ItemRequestServiceImpl(mockReopository,
-            mockUserRepository, mockItemRepository);
+    @BeforeEach
+    void setUp() {
+        mockReopository = Mockito.mock(ItemRequestReopository.class);
+        mockUserRepository = Mockito.mock(UserRepository.class);
+        mockItemRepository = Mockito.mock(ItemRepository.class);
+        requestService = new ItemRequestServiceImpl(mockReopository,
+                mockUserRepository, mockItemRepository);
+    }
 
     @Test
     @DisplayName("AddNewItemRequest - вызов метода реопозитория")

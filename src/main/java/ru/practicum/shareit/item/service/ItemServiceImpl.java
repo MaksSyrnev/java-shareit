@@ -65,12 +65,10 @@ public class ItemServiceImpl implements ItemService {
             if (!isValidNewItemData(itemDto)) {
                 throw new IncorrectItemDataExeption("недостаточно данных");
             }
-            Optional<User> user = userRepository.findById(userId);
-            if (user.isEmpty()) {
-                throw new IncorrectItemIdExeption("неверный id пользователя");
-            }
+            User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectItemIdExeption("вещь с таким id не найдена"));
             Item item = new Item();
-            item.setUser(user.get());
+            item.setUser(user);
             item.setName(itemDto.getName());
             item.setDescription(itemDto.getDescription());
             item.setAvailable(itemDto.getAvailable());
@@ -91,27 +89,23 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item updateItem(int itemId, ItemDto itemDto, int userId) {
         log.info("пачим item, пришло : userId - {}, itemId - {}, itemDto- {}", userId, itemId, itemDto);
-        Optional<Item> item = repository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new IncorrectItemDataExeption("Вещь с id не найдена");
-        }
-        if (item.get().getUser().getId() != userId) {
+        Item item = repository.findById(itemId).orElseThrow(
+                () -> new IncorrectItemDataExeption("Вещь с id не найдена"));
+        if (item.getUser().getId() != userId) {
             throw new IncorrectItemOwnerExeption("в доступе отказано, чужая вещь");
         }
-        fillItem(item.get(), itemDto);
-        repository.save(item.get());
-        log.info("item на выходе получился такой: {}", item.get());
-        return item.get();
+        fillItem(item, itemDto);
+        repository.save(item);
+        log.info("item на выходе получился такой: {}", item);
+        return item;
     }
 
     @Override
     public ItemDtoWithBooking getItemById(int userId, int itemId) {
-        Optional<Item> item = repository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new IncorrectItemIdExeption("неверный id вещи");
-        }
-        ItemDtoWithBooking itemDto = toItemDtoWithBooking(item.get());
-        if (item.get().getUser().getId() == userId) {
+        Item item = repository.findById(itemId).orElseThrow(
+                () -> new IncorrectItemIdExeption("неверный id вещи"));
+        ItemDtoWithBooking itemDto = toItemDtoWithBooking(item);
+        if (item.getUser().getId() == userId) {
             fillItemBooking(itemDto);
         }
         List<Comment> comments = commentsReopository.findAllByItemId(itemId);
@@ -126,10 +120,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDtoWithBooking> getAllItemsByUser(int userId, int from, int size) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectItemIdExeption("неверный id пользователя");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectItemIdExeption("неверный id пользователя"));
         PageRequest page = of(from > 0 ? from / size : 0, size);
         final List<ItemDtoWithBooking> itemsDtoWithBookings = new ArrayList<>();
         final List<Item> itemsAll = repository.findAllByUserIdOrderByIdAsc(userId, page).getContent();
@@ -162,15 +154,11 @@ public class ItemServiceImpl implements ItemService {
         if (commentDto.getText().isBlank()) {
             throw new IncorrectDataCommentExeption("пустой комментарий");
         }
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new IncorrectItemIdExeption("неверный id пользователя");
-        }
-        Optional<Item> item = repository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new IncorrectItemIdExeption("неверный id вещи");
-        }
-        if (item.get().getUser().getId() == userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IncorrectItemIdExeption("неверный id пользователя"));
+        Item item = repository.findById(itemId).orElseThrow(
+                () -> new IncorrectItemIdExeption("неверный id вещи"));
+        if (item.getUser().getId() == userId) {
             throw new IncorrectItemDataExeption("неверный id пользователя, владелец не может добавлять комментарий");
         }
         List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerIdAndStatus(itemId, userId,
@@ -182,8 +170,8 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectItemDataExeption("неверный id пользователя, он еще не брал вещь");
         }
         Comment comment = toComment(commentDto);
-        comment.setItem(item.get());
-        comment.setAuthor(user.get());
+        comment.setItem(item);
+        comment.setAuthor(user);
         commentsReopository.save(comment);
         return toShortCommentDto(comment);
     }

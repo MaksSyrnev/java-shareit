@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,12 +36,18 @@ import static org.springframework.data.domain.PageRequest.of;
 
 @Slf4j
 public class BookingServiceImplTest {
-    private final UserRepository mockUserRepository  = Mockito.mock(UserRepository.class);
-    private final ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
-    private final BookingRepository mockRepository = Mockito.mock(BookingRepository.class);
+    private UserRepository mockUserRepository;
+    private ItemRepository mockItemRepository;
+    private BookingRepository mockRepository;
+    private BookingServiceImpl bookingService;
 
-    final BookingServiceImpl bookingService = new BookingServiceImpl(mockRepository,
-            mockItemRepository, mockUserRepository);
+    @BeforeEach
+    void setUp() {
+        mockUserRepository = Mockito.mock(UserRepository.class);
+        mockItemRepository = Mockito.mock(ItemRepository.class);
+        mockRepository = Mockito.mock(BookingRepository.class);
+        bookingService = new BookingServiceImpl(mockRepository, mockItemRepository, mockUserRepository);
+    }
 
     @Test
     @DisplayName("AddNewBooking - есть ли вызов сохранения в реопозиторий")
@@ -160,7 +167,7 @@ public class BookingServiceImplTest {
         Item mockItem = makeItem(56, "name", "description", owner,
                 true, null);
         BookingDto crossBookingDto = makeBookingDto(1, LocalDateTime.now().minusDays(1),
-                (LocalDateTime.now().plusDays(2)));
+                (LocalDateTime.now().plusDays(3)));
         crossBookingDto.setStatus(BookingStatus.APPROVED);
         List<Booking> bookingsItem = List.of(
                 BookingMapper.toBooking(crossBookingDto, owner, mockItem)
