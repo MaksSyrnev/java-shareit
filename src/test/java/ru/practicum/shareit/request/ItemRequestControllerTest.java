@@ -12,7 +12,6 @@ import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.request.controller.ItemRequestController;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
-import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.request.exeption.IncorrectIdRequestExeption;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
