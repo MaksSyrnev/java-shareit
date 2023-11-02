@@ -17,12 +17,12 @@ import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
 import org.springframework.data.domain.Page;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,13 +35,12 @@ import static org.springframework.data.domain.PageRequest.of;
 
 @Slf4j
 public class BookingServiceImplTest {
-    private final UserService mockUserService  = Mockito.mock(UserService.class);
-    private final ItemService mockItemService = Mockito.mock(ItemService.class);
+    private final UserRepository mockUserRepository  = Mockito.mock(UserRepository.class);
+    private final ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
     private final BookingRepository mockRepository = Mockito.mock(BookingRepository.class);
 
     final BookingServiceImpl bookingService = new BookingServiceImpl(mockRepository,
-            mockItemService, mockUserService);
-
+            mockItemRepository, mockUserRepository);
 
     @Test
     @DisplayName("AddNewBooking - есть ли вызов сохранения в реопозиторий")
@@ -50,16 +49,18 @@ public class BookingServiceImplTest {
                 (LocalDateTime.now().plusDays(2)));
         User userJon = makeUser(1, "Jon", "jon@dow.com");
         User user = makeUser(2, "Joe", "joe@dow.com");
-        ItemDtoWithBooking mockItem = makeItemDtoWithBooking(56, "name", "description", user,
+        Item mockItem = makeItem(56, "name", "description", user,
                 true, null);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(userJon);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(userJon));
 
         Mockito
-                .when(mockItemService.getItemById(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(mockItem);
+                .when(mockItemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(mockItem));
+
+
 
         bookingService.addBooking(5, bookingDtoIncoming);
 
@@ -75,16 +76,16 @@ public class BookingServiceImplTest {
                 (LocalDateTime.now().minusDays(2)));
         User userJon = makeUser(1, "Jon", "jon@dow.com");
         User user = makeUser(2, "Joe", "joe@dow.com");
-        ItemDtoWithBooking mockItem = makeItemDtoWithBooking(56, "name", "description", user,
+        Item mockItem = makeItem(56, "name", "description", user,
                 true, null);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(userJon);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(userJon));
 
         Mockito
-                .when(mockItemService.getItemById(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(mockItem);
+                .when(mockItemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(mockItem));
 
         final IncorrectBookingDataExeption ex = assertThrows(
                 IncorrectBookingDataExeption.class,
@@ -102,16 +103,16 @@ public class BookingServiceImplTest {
                 (LocalDateTime.now().plusDays(2)));
         User userJon = makeUser(1, "Jon", "jon@dow.com");
         User user = makeUser(2, "Joe", "joe@dow.com");
-        ItemDtoWithBooking mockItem = makeItemDtoWithBooking(56, "name", "description", userJon,
+        Item mockItem = makeItem(56, "name", "description", userJon,
                 true, null);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(userJon);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(userJon));
 
         Mockito
-                .when(mockItemService.getItemById(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(mockItem);
+                .when(mockItemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(mockItem));
 
         final IncorrectItemIdOrUserIdBoking ex = assertThrows(
                 IncorrectItemIdOrUserIdBoking.class,
@@ -129,16 +130,16 @@ public class BookingServiceImplTest {
                 (LocalDateTime.now().plusDays(2)));
         User userJon = makeUser(1, "Jon", "jon@dow.com");
         User user = makeUser(2, "Joe", "joe@dow.com");
-        ItemDtoWithBooking mockItem = makeItemDtoWithBooking(56, "name", "description", user,
+        Item mockItem = makeItem(56, "name", "description", user,
                 false, null);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(userJon);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(userJon));
 
         Mockito
-                .when(mockItemService.getItemById(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(mockItem);
+                .when(mockItemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(mockItem));
 
         final IncorrectBookingDataExeption ex = assertThrows(
                 IncorrectBookingDataExeption.class,
@@ -319,8 +320,8 @@ public class BookingServiceImplTest {
         Page<Booking> pagedResponse = new PageImpl(bookings);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(booker);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(booker));
 
         Mockito
                 .when(mockRepository.findAllByBookerIdOrderByStartDesc(1, page))
@@ -338,8 +339,8 @@ public class BookingServiceImplTest {
         User booker = makeUser(1, "Jon", "jon@dow.com");
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(booker);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(booker));
 
         final IncorrectStatusBookingExeption ex = assertThrows(
                 IncorrectStatusBookingExeption.class,
@@ -347,18 +348,6 @@ public class BookingServiceImplTest {
         );
 
         Assertions.assertEquals(ex.getMessage(), "LOVE",
-                "Ошибка не верная или не произошла");
-    }
-
-    @Test
-    @DisplayName("GetBookingByState - некорректные значения для пагинации")
-    void testGetBookingByStateIncorrectPageNumber() {
-        final IncorrectDataItemRequestExeption ex = assertThrows(
-                IncorrectDataItemRequestExeption.class,
-                () -> bookingService.getBookingByState(1, "ALL", 0, -10)
-        );
-
-        Assertions.assertEquals(ex.getMessage(), "некорректное значение параметров пагинации",
                 "Ошибка не верная или не произошла");
     }
 
@@ -371,8 +360,8 @@ public class BookingServiceImplTest {
         Page<Booking> pagedResponse = new PageImpl(bookings);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(owner);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(owner));
 
         Mockito
                 .when(mockRepository.findAllByItemUserIdAndStatusNotOrderByStartDesc(owner.getId(),
@@ -387,25 +376,13 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    @DisplayName("GetBookingByOwner - некорректное значение для пагинации")
-    void testGetBookingByOwnerIncorrectPageNumber() {
-        final IncorrectDataItemRequestExeption ex = assertThrows(
-                IncorrectDataItemRequestExeption.class,
-                () -> bookingService.getBookingByOwner(1, "ALL", -100, 10)
-        );
-
-        Assertions.assertEquals(ex.getMessage(), "некорректное значение параметров пагинации",
-                "Ошибка не верная или не произошла");
-    }
-
-    @Test
     @DisplayName("GetBookingByOwner - некорректный статус")
     void testGetBookingByOwnerIncorrectState() {
         User booker = makeUser(1, "Jon", "jon@dow.com");
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(booker);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(booker));
 
         final IncorrectStatusBookingExeption ex = assertThrows(
                 IncorrectStatusBookingExeption.class,

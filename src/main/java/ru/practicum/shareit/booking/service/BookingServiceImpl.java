@@ -12,12 +12,11 @@ import ru.practicum.shareit.booking.exeptions.IncorrectItemIdOrUserIdBoking;
 import ru.practicum.shareit.booking.exeptions.IncorrectStatusBookingExeption;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
-import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.exeption.IncorrectDataItemRequestExeption;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,20 +24,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.domain.PageRequest.of;
-import static ru.practicum.shareit.item.dto.ItemMapper.toItem;
 
 @Slf4j
 @Service
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
-    private final UserService userService;
-    private final ItemService itemService;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository repository, ItemService itemService, UserService userService) {
+    public BookingServiceImpl(BookingRepository repository, ItemRepository itemRepository, UserRepository userRepository) {
         this.repository = repository;
-        this.userService = userService;
-        this.itemService = itemService;
+        this.userRepository = userRepository;
+        this.itemRepository = itemRepository;
     }
 
     @Override
@@ -48,15 +46,27 @@ public class BookingServiceImpl implements BookingService {
         if (!isValidDateBookingDto(bookingDto)) {
             throw new IncorrectBookingDataExeption("Даты бронирования некорректные");
         }
-        User booker = userService.getUserById(userId);
-        ItemDtoWithBooking itemBooking = itemService.getItemById(userId, bookingDto.getItemId());
-        Item item  = toItem(itemBooking);
-        if (booker.getId() == item.getUser().getId()) {
+        Optional<User> booker = userRepository.findById(userId);
+        if (booker.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("id пользователя не найден");
+        }
+        Optional<Item> itemForBooking = itemRepository.findById(bookingDto.getItemId());
+        if (itemForBooking.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("id вещи не найден");
+        }
+        Item item = itemForBooking.get();
+        if (booker.get().getId() == item.getUser().getId()) {
             throw new IncorrectItemIdOrUserIdBoking("Пользователь и владелец совпадают по id");
-        } else if (!itemBooking.getAvailable()) {
+        } else if (!item.isAvailable()) {
             throw new IncorrectBookingDataExeption("Вещь недоступна к бронированию");
         }
-        Booking newBooking = BookingMapper.toBooking(bookingDto, booker, item);
+//        List<Booking> bookingsItem = repository.findAllByItemIdOrderByStartDesc(item.getId());
+//        bookingsItem.stream()
+//                .filter(b -> b.getStatus() != BookingStatus.REJECTED)
+//                .filter(b -> {(b.getStart().isAfter(bookingDto.getStart()) ||
+//                    (b.getStart().isBefore()})
+//
+        Booking newBooking = BookingMapper.toBooking(bookingDto, booker.get(), item);
         return repository.save(newBooking);
     }
 
@@ -104,10 +114,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingByState(int userId, String state, int from, int size) {
-        if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("id пользователя не найден");
         }
-        User user = userService.getUserById(userId);
         log.info("+ getBookingByState: юзер - {}, найден - {}, статус - {}", userId, user, state);
         PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
@@ -145,10 +155,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingByOwner(int userId, String state, int from, int size) {
-        if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectItemIdOrUserIdBoking("id пользователя не найден");
         }
-        User user = userService.getUserById(userId);
         PageRequest page = of(from > 0 ? from / size : 0, size);
         switch (state) {
             case "CURRENT":

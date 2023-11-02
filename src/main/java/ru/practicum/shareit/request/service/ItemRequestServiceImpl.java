@@ -13,7 +13,7 @@ import ru.practicum.shareit.request.exeption.IncorrectIdRequestExeption;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,35 +22,42 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.domain.PageRequest.*;
+import static org.springframework.data.domain.PageRequest.of;
 import static ru.practicum.shareit.item.dto.ItemMapper.toItemDto;
+import static ru.practicum.shareit.request.dto.ItemRequestMapper.makeRequestWithItemsDto;
+import static ru.practicum.shareit.request.dto.ItemRequestMapper.toItemRequest;
 
 @Service
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestReopository reopository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
     @Autowired
-    public ItemRequestServiceImpl(ItemRequestReopository reopository, UserService userService,
+    public ItemRequestServiceImpl(ItemRequestReopository reopository, UserRepository userRepository,
                                   ItemRepository itemRepository) {
         this.reopository = reopository;
-        this.userService = userService;
+        this.userRepository = userRepository;
         this.itemRepository = itemRepository;
     }
 
     @Override
     public ItemRequest addNewItemRequest(int userId, ItemRequestDto itemRequestDto) {
-        User user = userService.getUserById(userId);
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setRequestor(user);
-        itemRequest.setDescription(itemRequestDto.getDescription());
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectIdRequestExeption("Неверный id пользователя");
+        }
+        ItemRequest itemRequest = toItemRequest(itemRequestDto);
+        itemRequest.setRequestor(user.get());
         return reopository.save(itemRequest);
     }
 
     @Override
     public ItemRequestWithItemsDto getRequestById(int userId, int requestId) {
-        User user = userService.getUserById(userId);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectIdRequestExeption("Неверный id пользователя");
+        }
         Optional<ItemRequest> iRequest = reopository.findById(requestId);
         if (iRequest.isEmpty()) {
             throw new IncorrectIdRequestExeption("Запрос с таким id не найден");
@@ -68,7 +75,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestWithItemsDto> getAllUserRequest(int userId) {
-        User user = userService.getUserById(userId);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectIdRequestExeption("Неверный id пользователя");
+        }
         Map<Integer, ItemRequest> requestMap = reopository.findAllByRequestorId(userId)
                 .stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
@@ -88,9 +98,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestWithItemsDto> getAllRequest(int userId, int from, int size) {
-        User user = userService.getUserById(userId);
-        if ((from < 0) || (size < 0)) {
-            throw new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new IncorrectIdRequestExeption("Неверный id пользователя");
         }
         PageRequest page = of(from > 0 ? from / size : 0, size);
         final Map<Integer, ItemRequest> requestMap = reopository.findAllByRequestorIdNot(userId, page).getContent()
@@ -102,20 +112,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .collect(Collectors.groupingBy(ItemDto::getRequestId));
         final List<ItemRequestWithItemsDto> finedRequests = requestMap.values()
                 .stream()
-                .map(request -> makeRequestWithItemsDto(
-                        request,
-                        itemsMap.getOrDefault(request.getId(), Collections.emptyList())
-                ))
+                .map(request -> makeRequestWithItemsDto(request,
+                        itemsMap.getOrDefault(request.getId(), Collections.emptyList())))
                 .collect(Collectors.toList());
         return finedRequests;
-    }
-
-    private ItemRequestWithItemsDto makeRequestWithItemsDto(ItemRequest request, List<ItemDto> items) {
-        ItemRequestWithItemsDto reqWithItems = new ItemRequestWithItemsDto();
-        reqWithItems.setId(request.getId());
-        reqWithItems.setCreated(request.getCreated());
-        reqWithItems.setDescription(request.getDescription());
-        reqWithItems.setItems(items);
-        return reqWithItems;
     }
 }

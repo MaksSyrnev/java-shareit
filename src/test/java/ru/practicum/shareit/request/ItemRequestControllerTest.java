@@ -91,22 +91,6 @@ public class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllRequestIncorrectPage() throws Exception {
-        ErrorResponse errorResponse = new ErrorResponse("Запрос не содержит описания",
-                "некорректное значение параметров пагинации");
-
-        when(requestService.getAllRequest(anyInt(), anyInt(), anyInt()))
-                .thenThrow(new IncorrectDataItemRequestExeption("некорректное значение параметров пагинации"));
-
-        mvc.perform(get("/requests/all?from={from}&size={size}", "0", "-20")
-                        .header("X-Sharer-User-Id", "1")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect((ResultMatcher) jsonPath("$.error", is(errorResponse.getError())))
-                .andExpect((ResultMatcher) jsonPath("$.description", is(errorResponse.getDescription())));
-    }
-
-    @Test
     void getRequestById() throws Exception {
         ItemRequestWithItemsDto request = new ItemRequestWithItemsDto();
         request.setId(1);

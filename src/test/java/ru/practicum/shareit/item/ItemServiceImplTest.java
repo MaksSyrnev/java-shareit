@@ -24,7 +24,7 @@ import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,12 +37,12 @@ import static org.springframework.data.domain.PageRequest.of;
 public class ItemServiceImplTest {
 
     private final ItemRepository mockRepository = Mockito.mock(ItemRepository.class);
-    private final UserService mockUserService = Mockito.mock(UserService.class);
+    private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
     private final BookingRepository mockBookingRepository = Mockito.mock(BookingRepository.class);
     private final CommentReopository mockCommentsReopository = Mockito.mock(CommentReopository.class);
     private final ItemRequestReopository mockRequestReopository = Mockito.mock(ItemRequestReopository.class);
 
-    final ItemServiceImpl itemService = new ItemServiceImpl(mockRepository, mockUserService,
+    final ItemServiceImpl itemService = new ItemServiceImpl(mockRepository, mockUserRepository,
             mockBookingRepository, mockCommentsReopository, mockRequestReopository);
 
     @Test
@@ -53,8 +53,8 @@ public class ItemServiceImplTest {
         Item savedItem = makeItem(1, "Вещь", "Обалденная", owner, true, null);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(owner);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(owner));
 
         Mockito
                 .when(mockRepository.save(Mockito.any()))
@@ -73,8 +73,8 @@ public class ItemServiceImplTest {
         User owner = makeUser(1, "Jon", "jon@dow.com");
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(owner);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(owner));
 
         final IncorrectItemDataExeption ex = assertThrows(
                 IncorrectItemDataExeption.class,
@@ -231,8 +231,8 @@ public class ItemServiceImplTest {
         Page<Item> pagedResponse = new PageImpl(items);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         Mockito
                 .when(mockRepository.findAllByUserIdOrderByIdAsc(1, page))
@@ -243,19 +243,6 @@ public class ItemServiceImplTest {
         Mockito.verify(mockRepository, Mockito.times(1))
                 .findAllByUserIdOrderByIdAsc(1, page);
     }
-
-    @Test
-    @DisplayName("GetAllItemsByUser - неверный параметр пагинации")
-    void testGetAllItemsByUserIncorrectPageNumber() {
-        final IncorrectItemDataExeption ex = assertThrows(
-                IncorrectItemDataExeption.class,
-                () -> itemService.getAllItemsByUser(11, 0, -10)
-        );
-
-        Assertions.assertEquals(ex.getMessage(), "некорректное значение параметров пагинации",
-                "Ошибка не верная или не произошла");
-    }
-
 
     @Test
     @DisplayName("SearchItem - вызов правильного метода реопозитория")
@@ -295,8 +282,8 @@ public class ItemServiceImplTest {
         bookings.add(booking);
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         Mockito
                 .when(mockRepository.findById(Mockito.anyInt()))
@@ -337,8 +324,8 @@ public class ItemServiceImplTest {
         commentDto.setText("text");
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(owner);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(owner));
 
         Mockito
                 .when(mockRepository.findById(Mockito.anyInt()))

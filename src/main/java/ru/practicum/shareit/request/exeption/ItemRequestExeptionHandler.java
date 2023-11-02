@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.request.controller.ItemRequestController;
 
+import javax.validation.ConstraintViolationException;
+
 @Slf4j
 @RestControllerAdvice(assignableTypes = {ItemRequestController.class})
 public class ItemRequestExeptionHandler {

@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,8 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -24,6 +27,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
+@Validated
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final ItemRequestService service;
@@ -36,29 +40,25 @@ public class ItemRequestController {
     @PostMapping
     public ItemRequest addNewRequest(@RequestHeader("X-Sharer-User-Id") int headerUserId,
                                         @Valid @RequestBody ItemRequestDto itemRequestDto) {
-        int userId = headerUserId;
-        return service.addNewItemRequest(userId, itemRequestDto);
+        return service.addNewItemRequest(headerUserId, itemRequestDto);
     }
 
     @GetMapping
     public List<ItemRequestWithItemsDto> getAllUserRequest(@RequestHeader("X-Sharer-User-Id") int headerUserId) {
-        int userId = headerUserId;
-        return service.getAllUserRequest(userId);
+        return service.getAllUserRequest(headerUserId);
     }
 
     @GetMapping("/all")
-    public List<ItemRequestWithItemsDto> getAllRequest(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
-                                              @RequestParam(defaultValue = "0") int from,
-                                              @RequestParam(defaultValue = "20") int size) {
+    public List<ItemRequestWithItemsDto> getAllRequest(@RequestHeader("X-Sharer-User-Id") int headerUserId,
+                                          @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                          @RequestParam(defaultValue = "20") @Positive int size) {
         log.info("+GET /requests/all, параметры from - {}, size - {}", from, size);
-        int userId = Integer.parseInt(headerUserId);
-        return service.getAllRequest(userId, from, size);
+        return service.getAllRequest(headerUserId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestWithItemsDto getRequestById(@RequestHeader ("X-Sharer-User-Id") String headerUserId,
+    public ItemRequestWithItemsDto getRequestById(@RequestHeader("X-Sharer-User-Id") int headerUserId,
                                       @PathVariable int requestId) {
-        int userId = Integer.parseInt(headerUserId);
-        return service.getRequestById(userId, requestId);
+        return service.getRequestById(headerUserId, requestId);
     }
 }

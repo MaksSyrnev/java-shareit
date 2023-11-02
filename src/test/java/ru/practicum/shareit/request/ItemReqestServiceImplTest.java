@@ -16,7 +16,7 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestServiceImpl;
 import ru.practicum.shareit.request.storage.ItemRequestReopository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,11 +28,11 @@ import static org.springframework.data.domain.PageRequest.of;
 
 public class ItemReqestServiceImplTest {
     private final ItemRequestReopository mockReopository = Mockito.mock(ItemRequestReopository.class);
-    private final UserService mockUserService = Mockito.mock(UserService.class);
+    private final UserRepository mockUserRepository = Mockito.mock(UserRepository.class);
     private final ItemRepository mockItemRepository = Mockito.mock(ItemRepository.class);
 
     final ItemRequestServiceImpl requestService = new ItemRequestServiceImpl(mockReopository,
-            mockUserService, mockItemRepository);
+            mockUserRepository, mockItemRepository);
 
     @Test
     @DisplayName("AddNewItemRequest - вызов метода реопозитория")
@@ -41,8 +41,8 @@ public class ItemReqestServiceImplTest {
         ItemRequestDto itemRequestDto = makeItemRequestDto("text", user, LocalDateTime.now());
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         requestService.addNewItemRequest(1, itemRequestDto);
 
@@ -58,8 +58,8 @@ public class ItemReqestServiceImplTest {
         List<Item> items = new ArrayList<>();
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         Mockito
                 .when(mockReopository.findById(Mockito.anyInt()))
@@ -84,8 +84,8 @@ public class ItemReqestServiceImplTest {
         User user = makeUser(1, "Jon", "jon@dow.com");
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         final IncorrectIdRequestExeption ex = assertThrows(
                 IncorrectIdRequestExeption.class,
@@ -106,8 +106,8 @@ public class ItemReqestServiceImplTest {
         List<Item> items = new ArrayList<>();
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         Mockito
                 .when(mockReopository.findAllByRequestorId(Mockito.anyInt()))
@@ -139,8 +139,8 @@ public class ItemReqestServiceImplTest {
         List<Item> items = new ArrayList<>();
 
         Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
+                .when(mockUserRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user));
 
         Mockito
                 .when(mockReopository.findAllByRequestorIdNot(1, page))
@@ -157,24 +157,6 @@ public class ItemReqestServiceImplTest {
 
         Mockito.verify(mockItemRepository, Mockito.times(1))
                 .findByRequestIdIn(Mockito.anySet());
-    }
-
-    @Test
-    @DisplayName("GetAllRequest - неверные параметры пагинации")
-    void testGetAllRequestIncorrectPageNumber() {
-        User user = makeUser(1, "Jon", "jon@dow.com");
-
-        Mockito
-                .when(mockUserService.getUserById(Mockito.anyInt()))
-                .thenReturn(user);
-
-        final IncorrectDataItemRequestExeption ex = assertThrows(
-                IncorrectDataItemRequestExeption.class,
-                () -> requestService.getAllRequest(1, 0, -10)
-        );
-
-        Assertions.assertEquals(ex.getMessage(), "некорректное значение параметров пагинации",
-                "Ошибка не верная или не произошла");
     }
 
     private ItemRequest makeItemRequest(int id, String description, User requestor, LocalDateTime created) {

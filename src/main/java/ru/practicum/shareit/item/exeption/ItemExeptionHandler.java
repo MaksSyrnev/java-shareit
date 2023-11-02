@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.item.controller.ItemController;
 
+import javax.validation.ConstraintViolationException;
+
 @Slf4j
 @RestControllerAdvice(assignableTypes = {ItemController.class})
 public class ItemExeptionHandler {
@@ -44,6 +46,15 @@ public class ItemExeptionHandler {
         log.error("валидация данных : - '{}'", e.getMessage());
         return new ErrorResponse(
                 "Ошибка данных", e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotValidateDataRequestExeption(final ConstraintViolationException e) {
+        log.error("валидация данных: - '{}'", e.getMessage());
+        return new ErrorResponse(
+                "Ошибка: ", e.getMessage()
         );
     }
 }
