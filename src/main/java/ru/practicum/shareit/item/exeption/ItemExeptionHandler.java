@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exeption.ErrorResponse;
 import ru.practicum.shareit.item.controller.ItemController;
 
+import javax.validation.ConstraintViolationException;
+
 @Slf4j
 @RestControllerAdvice(assignableTypes = {ItemController.class})
 public class ItemExeptionHandler {
@@ -16,7 +18,7 @@ public class ItemExeptionHandler {
     public ErrorResponse handleValidationError(final IncorrectItemDataExeption e) {
         log.error("валидация данных: - '{}'", e.getMessage());
         return new ErrorResponse(
-                "Неполные данные для солздания вещи", e.getMessage()
+                "Неполные данные для создания вещи", e.getMessage()
         );
     }
 
@@ -39,9 +41,9 @@ public class ItemExeptionHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowableError(final Throwable e) {
-        log.error("ошибка: - '{}'", e.getMessage());
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public  ErrorResponse handleIncorrectDataComment(final IncorrectDataCommentExeption e) {
+        log.error("валидация данных : - '{}'", e.getMessage());
         return new ErrorResponse(
                 "Ошибка данных", e.getMessage()
         );
@@ -49,10 +51,10 @@ public class ItemExeptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public  ErrorResponse handleIncorrectDataComment(final IncorrectDataCommentExeption e) {
-        log.error("валидация данных : - '{}'", e.getMessage());
+    public ErrorResponse handleNotValidateDataRequestExeption(final ConstraintViolationException e) {
+        log.error("валидация данных: - '{}'", e.getMessage());
         return new ErrorResponse(
-                "Ошибка данных", e.getMessage()
+                "Ошибка: ", e.getMessage()
         );
     }
 }
