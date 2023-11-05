@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @Controller
 @RequestMapping(path = "/users")
@@ -48,5 +47,4 @@ public class UserController {
         log.info("delete user, userId={} ", id);
         return userClient.deleteUser(id);
     }
-
 }

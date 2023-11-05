@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item;
 
-import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.client.BaseClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,9 +42,11 @@ public class ItemClient extends BaseClient {
         );
         return get("", userId, parameters);
     }
+
     public ResponseEntity<Object> getItem(long userId, long itemId) {
         return get("/" + itemId, userId);
     }
+
     public ResponseEntity<Object> search(long userId, String text, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
                 "text", text,
@@ -54,6 +55,7 @@ public class ItemClient extends BaseClient {
         );
         return get("/search?text={text}&from={from}&size={size}", userId, parameters);
     }
+
     public ResponseEntity<Object> addComment(long userId, long itemId, CommentDto commentDto) {
         return post("/" + itemId + "/comment", userId, commentDto);
     }
