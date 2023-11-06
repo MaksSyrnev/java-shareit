@@ -14,10 +14,10 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class UserDto {
     @NotBlank(groups = Marker.OnCreate.class)
-    @Size(max = 255)
+    @Size(max = 255, groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     private String name;
-    @Email
+    @Email(groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     @NotEmpty(groups = Marker.OnCreate.class)
-    @Size(max = 512)
+    @Size(max = 512, groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     private String email;
 }

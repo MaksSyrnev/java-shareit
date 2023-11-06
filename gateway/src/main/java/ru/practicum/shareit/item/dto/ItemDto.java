@@ -14,10 +14,10 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class ItemDto {
     @NotBlank(groups = Marker.OnCreate.class)
-    @Size(max = 255)
+    @Size(max = 255, groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     private String name;
     @NotBlank(groups = Marker.OnCreate.class)
-    @Size(max = 1024)
+    @Size(max = 1024, groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     private String description;
     @NotNull(groups = Marker.OnCreate.class)
     private Boolean available;

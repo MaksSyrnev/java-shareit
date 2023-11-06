@@ -5,11 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import ru.practicum.shareit.user.dto.Marker;
 import ru.practicum.shareit.user.dto.UserDto;
-
-import javax.validation.Valid;
 
 @Controller
 @RequestMapping(path = "/users")
@@ -33,14 +37,15 @@ public class UserController {
 
     @PostMapping
     @Validated({Marker.OnCreate.class})
-    public ResponseEntity<Object> addUser(@RequestBody @Valid UserDto userDto) {
+    public ResponseEntity<Object> addUser(@RequestBody @Validated({Marker.OnCreate.class}) UserDto userDto) {
         log.info("created user {} ", userDto);
         return userClient.addUser(userDto);
     }
 
     @PatchMapping("/{userId}")
     @Validated({Marker.OnUpdate.class})
-    public ResponseEntity<Object> updateUser(@PathVariable int userId, @Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<Object> updateUser(@PathVariable int userId,
+            @Validated({Marker.OnUpdate.class}) @RequestBody UserDto userDto) {
         log.info("update user {}, userId={}", userDto, userId);
         return userClient.updateUser(userId, userDto);
     }
