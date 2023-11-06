@@ -36,14 +36,12 @@ public class UserController {
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
     public ResponseEntity<Object> addUser(@RequestBody @Validated({Marker.OnCreate.class}) UserDto userDto) {
         log.info("created user {} ", userDto);
         return userClient.addUser(userDto);
     }
 
     @PatchMapping("/{userId}")
-    @Validated({Marker.OnUpdate.class})
     public ResponseEntity<Object> updateUser(@PathVariable int userId,
             @Validated({Marker.OnUpdate.class}) @RequestBody UserDto userDto) {
         log.info("update user {}, userId={}", userDto, userId);

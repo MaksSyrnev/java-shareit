@@ -32,7 +32,6 @@ public class ItemController {
     private final ItemClient itemClient;
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
     public ResponseEntity<Object> addItem(@RequestHeader(HEADER_USER_NAME) long userId,
                                           @RequestBody @Validated({Marker.OnCreate.class}) ItemDto itemDto) {
         log.info("created item {}, userId={}", itemDto, userId);
@@ -40,7 +39,6 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    @Validated({Marker.OnUpdate.class})
     public ResponseEntity<Object> updateItem(@RequestHeader(HEADER_USER_NAME) long userId,
                            @PathVariable long itemId,
                            @RequestBody @Validated({Marker.OnUpdate.class}) ItemDto itemDto) {
