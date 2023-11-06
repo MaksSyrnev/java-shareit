@@ -46,6 +46,9 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> bookItem(long userId, BookItemRequestDto requestDto) {
+        if (!requestDto.getStart().isBefore(requestDto.getEnd())) {
+            throw new IllegalArgumentException("дата начала должна быть меньше даты окончания брони");
+        }
         return post("", userId, requestDto);
     }
 

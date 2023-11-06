@@ -12,6 +12,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
+import static ru.practicum.shareit.constant.ConstantGatway.HEADER_USER_NAME;
+
 @Controller
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
@@ -21,20 +23,20 @@ public class RequestController {
     private final RequestClient requestClient;
 
     @PostMapping
-    public ResponseEntity<Object> addRequest(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> addRequest(@RequestHeader(HEADER_USER_NAME) long userId,
                                                @Valid @RequestBody RequestDto requestDto) {
         log.info("Add request requestDto - {},  userId={}", requestDto, userId);
         return requestClient.addRequest(userId, requestDto);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getUserRequests(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public ResponseEntity<Object> getUserRequests(@RequestHeader(HEADER_USER_NAME) long userId) {
         log.info("Get user requests userId={}", userId);
         return requestClient.getUserRequests(userId);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Object> getRequests(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> getRequests(@RequestHeader(HEADER_USER_NAME) long userId,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Get requests all, userId={} from - {}, size - {}", userId, from, size);
@@ -42,7 +44,7 @@ public class RequestController {
     }
 
     @GetMapping("/{requestId}")
-    public ResponseEntity<Object> getRequest(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> getRequest(@RequestHeader(HEADER_USER_NAME) long userId,
                                                   @PathVariable int requestId) {
         log.info("Get request - {}, size - {}", requestId, userId);
         return requestClient.getRequestById(userId, requestId);
