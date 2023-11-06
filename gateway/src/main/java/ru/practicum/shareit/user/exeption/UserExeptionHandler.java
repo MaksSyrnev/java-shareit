@@ -10,7 +10,7 @@ import ru.practicum.shareit.user.UserController;
 import javax.validation.ConstraintViolationException;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes ={UserController.class})
+@RestControllerAdvice(assignableTypes = {UserController.class})
 public class UserExeptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
